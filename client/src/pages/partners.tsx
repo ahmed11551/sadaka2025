@@ -95,12 +95,19 @@ export default function PartnersPage() {
   const isInsanPartner = selectedFund?.slug === 'insan' || partnerDetails?.data?.slug === 'insan';
   
   // Fetch Insan programs if partner is Insan
-  const { data: insanPrograms, isLoading: insanProgramsLoading } = useInsanPrograms();
+  const { data: insanPrograms = [], isLoading: insanProgramsLoading } = useInsanPrograms();
 
   // Process partners data
   const partners = useMemo(() => {
     if (!partnersData?.data) return [];
-    return Array.isArray(partnersData.data) ? partnersData.data : partnersData.data.items || [];
+    const data = partnersData.data;
+    if (Array.isArray(data)) {
+      return data.filter((p: any) => p && p.id);
+    }
+    if (data && typeof data === 'object' && 'items' in data) {
+      return Array.isArray(data.items) ? data.items.filter((p: any) => p && p.id) : [];
+    }
+    return [];
   }, [partnersData]);
 
   const filteredPartners = useMemo(() => {
@@ -146,24 +153,45 @@ export default function PartnersPage() {
         <div className="p-4 space-y-6">
           {/* Fund Hero */}
           <div className="flex items-start gap-4">
-            <div className="w-20 h-20 rounded-2xl bg-slate-50 border flex items-center justify-center p-2">
-              <img src={selectedFund.logo} alt={selectedFund.name} className="w-full h-full object-contain" />
+                  <div className="w-20 h-20 rounded-2xl bg-slate-50 border flex items-center justify-center p-2">
+              {selectedFund.logo ? (
+                <img 
+                  src={selectedFund.logo} 
+                  alt={selectedFund.name || 'Фонд'} 
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              {!selectedFund.logo && (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                  <Layout className="w-8 h-8" />
+                </div>
+              )}
             </div>
             <div className="flex-1 pt-1">
               <h2 className="font-bold text-xl flex items-center gap-2">
-                {selectedFund.name}
+                {selectedFund.name || 'Без названия'}
                 {selectedFund.verified && <CheckCircle2 className="w-5 h-5 text-emerald-600 fill-emerald-50" />}
               </h2>
-              <p className="text-sm text-muted-foreground font-arabic mt-1">{selectedFund.nameAr}</p>
-              <Badge variant="secondary" className="mt-2 text-xs bg-amber-100 text-amber-800 hover:bg-amber-200 border-none">
-                {selectedFund.type}
-              </Badge>
+              {selectedFund.nameAr && (
+                <p className="text-sm text-muted-foreground font-arabic mt-1">{selectedFund.nameAr}</p>
+              )}
+              {selectedFund.type && (
+                <Badge variant="secondary" className="mt-2 text-xs bg-amber-100 text-amber-800 hover:bg-amber-200 border-none">
+                  {selectedFund.type}
+                </Badge>
+              )}
             </div>
           </div>
 
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {selectedFund.description}
-          </p>
+          {selectedFund.description && (
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {selectedFund.description}
+            </p>
+          )}
 
           {/* Quick Stats */}
           {partnerDetailsLoading ? (
@@ -349,7 +377,7 @@ export default function PartnersPage() {
                      <div className="flex items-center justify-center py-8">
                        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                      </div>
-                   ) : insanPrograms && insanPrograms.length > 0 ? (
+                   ) : Array.isArray(insanPrograms) && insanPrograms.length > 0 ? (
                      <div className="space-y-3">
                        {insanPrograms.map((program) => {
                          // Strip HTML tags from description for preview
@@ -481,7 +509,7 @@ export default function PartnersPage() {
                      <div className="flex items-center justify-center py-8">
                        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                      </div>
-                   ) : insanPrograms && insanPrograms.length > 0 ? (
+                   ) : Array.isArray(insanPrograms) && insanPrograms.length > 0 ? (
                      <div className="space-y-3">
                        {insanPrograms.map((program) => {
                          // Strip HTML tags from description for preview
@@ -686,7 +714,18 @@ export default function PartnersPage() {
               <Card key={partner.id} className="overflow-hidden cursor-pointer hover:border-primary/50 transition-all" onClick={() => setSelectedFund(partner)}>
                 <CardContent className="p-4 flex gap-4">
                   <div className="w-16 h-16 rounded-lg bg-slate-50 shrink-0 overflow-hidden border flex items-center justify-center p-2">
-                    <img src={partner.logo || logoImg} alt={partner.name || 'Фонд'} className="w-full h-full object-contain" />
+                    {partner.logo ? (
+                      <img 
+                        src={partner.logo} 
+                        alt={partner.name || 'Фонд'} 
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = logoImg;
+                        }}
+                      />
+                    ) : (
+                      <img src={logoImg} alt={partner.name || 'Фонд'} className="w-full h-full object-contain" />
+                    )}
                   </div>
                   <div className="flex-1 space-y-2">
                     <div className="flex justify-between items-start">

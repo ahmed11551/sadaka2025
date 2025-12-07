@@ -5,11 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { User as UserIcon, Trophy, Calendar, Users, Link as LinkIcon, Coins, ArrowUpRight, Sparkles, TrendingUp, Lock, Globe, Flag, Check } from "lucide-react";
 import { Link } from "wouter";
-import userAvatar from "@assets/generated_images/user_avatar_placeholder.png";
-import trophyIcon from "@assets/generated_images/rating_trophy_icon.png";
 import { cn } from "@/lib/utils";
-
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const topDonors = [
   { id: 1, name: "Абдуллах М.", amount: 150000, donations: 12, country: "ru" },
@@ -21,13 +18,9 @@ const topDonors = [
 
 export default function RatingPage() {
   const [activeTab, setActiveTab] = useState("general");
-  const { toast } = useToast();
 
   const handleMarathonJoin = () => {
-    toast({
-      title: "Вы в деле!",
-      description: "Вы успешно зарегистрировались в марафоне Рамадана.",
-    });
+    toast.success("Вы в деле! Вы успешно зарегистрировались в марафоне Рамадана.");
   };
 
   // Filter top donors by country (mocking "my country" as 'ru')
@@ -39,8 +32,8 @@ export default function RatingPage() {
     <div className="p-4 space-y-6 pt-6 pb-24">
       <header className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8">
-            <img src={trophyIcon} alt="Trophy" className="w-full h-full object-contain" />
+          <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+            <Trophy className="w-5 h-5 text-amber-600" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-[#1F2937]">Рейтинг</h1>
@@ -167,8 +160,8 @@ export default function RatingPage() {
               )}>
                 {i + 1}
               </span>
-              <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden">
-                <img src={userAvatar} alt="User" className="w-full h-full object-cover" />
+              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                <UserIcon className="w-5 h-5 text-muted-foreground" />
               </div>
               <div className="flex-1">
                 <p className="font-bold text-sm">{donor.name}</p>

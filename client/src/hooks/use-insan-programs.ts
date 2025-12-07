@@ -12,14 +12,17 @@ export function useInsanPrograms() {
       try {
         return await insanApi.getPrograms();
       } catch (error: any) {
-        handleApiError(error, 'Ошибка при загрузке программ фонда Инсан');
-        throw error;
+        // Silently handle errors - return empty array instead of throwing
+        console.error('Error loading Insan programs:', error);
+        return [];
       }
     },
     staleTime: 5 * 60 * 1000, // 5 минут - программы не меняются часто
     cacheTime: 10 * 60 * 1000, // 10 минут
-    retry: 2,
-    retryDelay: 1000,
+    retry: false,
+    throwOnError: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -27,22 +30,25 @@ export function useInsanPrograms() {
  * Hook для получения программы фонда Инсан по ID
  */
 export function useInsanProgram(id: number | null) {
-  return useQuery<InsanProgram, Error>({
+  return useQuery<InsanProgram | null, Error>({
     queryKey: ['insan', 'program', id],
     queryFn: async () => {
-      if (!id) throw new Error('Program ID is required');
+      if (!id) return null;
       try {
         return await insanApi.getProgramById(id);
       } catch (error: any) {
-        handleApiError(error, `Ошибка при загрузке программы ${id}`);
-        throw error;
+        // Silently handle errors - return null instead of throwing
+        console.error(`Error loading Insan program ${id}:`, error);
+        return null;
       }
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
     cacheTime: 10 * 60 * 1000,
-    retry: 2,
-    retryDelay: 1000,
+    retry: false,
+    throwOnError: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 }
 
