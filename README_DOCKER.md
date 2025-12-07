@@ -2,133 +2,148 @@
 
 ## Быстрый старт
 
-### Одна команда для запуска всего:
+### Вариант 1: MongoDB в Docker + Приложение локально (рекомендуется)
 
 ```bash
-docker-compose up --build
+# 1. Запустить только MongoDB
+docker-compose up mongodb -d
+
+# 2. Запустить приложение локально
+. "$HOME/.nvm/nvm.sh"
+MONGODB_URI="mongodb://sadakapass:sadakapass_password@localhost:27017/sadaka2025?authSource=admin" npm run dev
 ```
 
 Приложение будет доступно на `http://localhost:5000`
 
 ---
 
+### Вариант 2: Всё в Docker (если нужно)
+
+```bash
+# Использовать .env.docker вместо .env
+docker-compose --env-file .env.docker up --build
+```
+
+---
+
 ## Что включает Docker setup
 
-1. **PostgreSQL** - база данных
-2. **Приложение** - фронтенд + бэкенд
-3. **Автоматические миграции** - применяются при запуске
+1. **MongoDB** - база данных (порт 27017)
+2. **Приложение** - фронтенд + бэкенд (порт 5000)
 
 ---
 
 ## Настройка переменных окружения
 
+### Для локального запуска (MongoDB в Docker):
+
 Создайте файл `.env` в корне проекта:
 
 ```env
-# Database (уже настроено в docker-compose.yml)
-DATABASE_URL=postgresql://sadakapass:sadakapass_password@postgres:5432/sadakapass?schema=public
+# MongoDB (Docker)
+MONGODB_URI=mongodb://sadakapass:sadakapass_password@localhost:27017/sadaka2025?authSource=admin
 
 # Server
 PORT=5000
-NODE_ENV=production
+NODE_ENV=development
 
 # Session
 SESSION_SECRET=your-secret-key-here-change-in-production
 
 # API (бэкенд Владимира)
 API_BASE_URL=https://bot.e-replika.ru/api/v1
-API_TOKEN=your-token-here
+API_TOKEN=test_token_123
+
+# Frontend
+VITE_API_BASE_URL=http://localhost:5000/api
+VITE_API_TOKEN=test_token_123
+VITE_INSAN_API_URL=https://fondinsan.ru/api/v1
+VITE_INSAN_ACCESS_TOKEN=your-token-here
 ```
 
 ---
 
 ## Команды Docker
 
-### Запуск
+### Запуск только MongoDB
 ```bash
-docker-compose up
+docker-compose up mongodb -d
 ```
 
-### Запуск в фоне
+### Остановка MongoDB
 ```bash
-docker-compose up -d
+docker-compose stop mongodb
 ```
 
-### Пересборка и запуск
-```bash
-docker-compose up --build
-```
-
-### Остановка
-```bash
-docker-compose down
-```
-
-### Остановка с удалением данных
+### Остановка и удаление данных
 ```bash
 docker-compose down -v
 ```
 
-### Просмотр логов
+### Просмотр логов MongoDB
 ```bash
-docker-compose logs -f app
+docker-compose logs -f mongodb
 ```
 
-### Выполнение команд в контейнере
+### Выполнение команд в MongoDB
 ```bash
-# Применить миграции вручную
-docker-compose exec app npx prisma migrate deploy
+# Подключиться к MongoDB
+docker-compose exec mongodb mongosh -u sadakapass -p sadakapass_password --authenticationDatabase admin
 
-# Открыть shell в контейнере
-docker-compose exec app sh
+# Создать индексы
+docker-compose exec mongodb mongosh -u sadakapass -p sadakapass_password --authenticationDatabase admin sadaka2025 --eval "db.users.createIndex({email: 1})"
 ```
 
 ---
 
-## Разработка с Docker
+## Разработка
 
-### Для разработки используйте:
+### Рекомендуемый способ:
 
 ```bash
-# Запустить только базу данных
-docker-compose up postgres -d
+# 1. Запустить MongoDB в Docker
+docker-compose up mongodb -d
 
-# Запустить приложение локально
+# 2. Запустить приложение локально
 npm run dev
+```
+
+### Создание индексов MongoDB:
+
+```bash
+# После запуска MongoDB
+npm run db:mongo:indexes
 ```
 
 ---
 
 ## Решение проблем
 
-### Проблема: Порт 5000 уже занят
+### Проблема: Порт 27017 уже занят
 
 **Решение**: Измените порт в `docker-compose.yml`:
 ```yaml
 ports:
-  - "5001:5000"  # Внешний порт:Внутренний порт
+  - "27018:27017"  # Внешний порт:Внутренний порт
 ```
 
-### Проблема: База данных не подключается
+И обновите `MONGODB_URI`:
+```env
+MONGODB_URI=mongodb://sadakapass:sadakapass_password@localhost:27018/sadaka2025?authSource=admin
+```
+
+### Проблема: MongoDB не подключается
 
 **Решение**: 
-1. Проверьте, что контейнер `postgres` запущен: `docker-compose ps`
-2. Проверьте логи: `docker-compose logs postgres`
-3. Убедитесь, что DATABASE_URL правильный
+1. Проверьте, что контейнер запущен: `docker-compose ps`
+2. Проверьте логи: `docker-compose logs mongodb`
+3. Убедитесь, что `MONGODB_URI` правильный
 
-### Проблема: Миграции не применяются
+### Проблема: Ошибка аутентификации
 
 **Решение**: 
-```bash
-docker-compose exec app npx prisma migrate deploy
-```
-
-### Проблема: Изображения не загружаются
-
-**Решение**: Убедитесь, что папка `uploads` существует и имеет права на запись:
-```bash
-docker-compose exec app chmod -R 777 uploads
-```
+1. Проверьте имя пользователя и пароль в `docker-compose.yml`
+2. Убедитесь, что используете `authSource=admin` в connection string
 
 ---
 
@@ -136,18 +151,20 @@ docker-compose exec app chmod -R 777 uploads
 
 После запуска проверьте:
 
-1. **База данных**: 
+1. **MongoDB**: 
    ```bash
-   docker-compose exec postgres psql -U sadakapass -d sadakapass -c "SELECT 1;"
+   docker-compose exec mongodb mongosh -u sadakapass -p sadakapass_password --authenticationDatabase admin --eval "db.adminCommand('ping')"
    ```
 
 2. **Приложение**: 
    ```bash
-   curl http://localhost:5000/api/health
+   curl http://localhost:5000
    ```
 
-3. **Фронтенд**: 
-   Откройте в браузере: `http://localhost:5000`
+3. **API**: 
+   ```bash
+   curl http://localhost:5000/api/health
+   ```
 
 ---
 
@@ -156,16 +173,15 @@ docker-compose exec app chmod -R 777 uploads
 **Важно для продакшена**:
 
 1. Измените `SESSION_SECRET` на случайную строку
-2. Измените пароль базы данных
+2. Измените пароль MongoDB
 3. Используйте переменные окружения для секретов
 4. Настройте HTTPS
-5. Ограничьте доступ к базе данных
+5. Ограничьте доступ к MongoDB
 
 ---
 
 ## Примечания
 
-- Данные базы данных сохраняются в volume `postgres_data`
+- Данные MongoDB сохраняются в volume `mongodb_data`
 - Загруженные файлы сохраняются в `./uploads`
 - Логи можно просмотреть через `docker-compose logs`
-
