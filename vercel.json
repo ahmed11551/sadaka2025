@@ -1,8 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npm run build:client",
+  "buildCommand": "npm install && cd client && vite build",
   "outputDirectory": "dist/public",
-  "devCommand": "npm run dev:client",
   "installCommand": "npm install",
   "framework": "vite",
   "rewrites": [
