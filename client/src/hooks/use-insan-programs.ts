@@ -43,16 +43,20 @@ export function useInsanProgram(id: number | null) {
     queryFn: async () => {
       if (!id) return null;
       try {
-        return await insanApi.getProgramById(id);
+        const program = await insanApi.getProgramById(id);
+        if (import.meta.env.DEV) {
+          console.log(`[useInsanProgram] Loaded program ${id}:`, program);
+        }
+        return program;
       } catch (error: any) {
-        // Silently handle errors - return null instead of throwing
-        console.error(`Error loading Insan program ${id}:`, error);
+        // Error is already handled in insanApi.getProgramById - it returns null
+        console.error(`[useInsanProgram] Error loading program ${id}:`, error);
         return null;
       }
     },
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5 минут
+    cacheTime: 10 * 60 * 1000, // 10 минут
     retry: false,
     throwOnError: false,
     refetchOnMount: false,
