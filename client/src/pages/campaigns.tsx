@@ -25,7 +25,6 @@ import { campaignFormSchema, commentFormSchema, type CampaignFormData, type Comm
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
 import { LoadingState } from "@/components/loading-state";
-import { Building2, User, Check, Heart as HeartIcon } from "lucide-react";
 import { usePartners } from "@/hooks/use-partners";
 
 // Helper function to format time ago
@@ -499,77 +498,77 @@ export default function CampaignsPage() {
                   ? Math.ceil((new Date(campaign.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
                   : null;
                 
-                return (
-                  <Card 
+            return (
+              <Card 
                     key={campaign.id || Math.random()} 
-                    className="overflow-hidden border-none shadow-md group cursor-pointer active:scale-[0.98] transition-transform"
-                    onClick={() => openDetails(campaign)}
-                  >
-                    <div className="relative h-40 overflow-hidden">
-                      <img 
+                className="overflow-hidden border-none shadow-md group cursor-pointer active:scale-[0.98] transition-transform"
+                onClick={() => openDetails(campaign)}
+              >
+                <div className="relative h-40 overflow-hidden">
+                  <img 
                         src={campaign.image || '/placeholder-campaign.jpg'} 
                         alt={campaign.title || 'Кампания'} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-100 z-10">
-                        <Button 
-                          size="icon" 
-                          variant="secondary" 
-                          className={cn(
-                            "h-8 w-8 rounded-full bg-white/90 shadow-sm transition-colors", 
-                            favorites.includes(campaign.id) ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-red-500"
-                          )}
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-100 z-10">
+                    <Button 
+                      size="icon" 
+                      variant="secondary" 
+                      className={cn(
+                        "h-8 w-8 rounded-full bg-white/90 shadow-sm transition-colors", 
+                        favorites.includes(campaign.id) ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-red-500"
+                      )}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
                             if (campaign.id) toggleFavorite(campaign.id);
-                          }}
-                        >
-                          <Heart className={cn("w-4 h-4", favorites.includes(campaign.id) && "fill-current")} />
-                        </Button>
-                        <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full bg-white/90 text-muted-foreground hover:text-primary shadow-sm" onClick={(e) => { e.stopPropagation(); }}>
-                          <MessageCircle className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <div className="absolute top-2 right-2 flex gap-2">
-                        {campaign.urgent && (
-                          <Badge variant="destructive" className="bg-red-500 text-white shadow-sm animate-pulse">
-                            Срочно
-                          </Badge>
-                        )}
+                      }}
+                    >
+                      <Heart className={cn("w-4 h-4", favorites.includes(campaign.id) && "fill-current")} />
+                    </Button>
+                    <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full bg-white/90 text-muted-foreground hover:text-primary shadow-sm" onClick={(e) => { e.stopPropagation(); }}>
+                      <MessageCircle className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="absolute top-2 right-2 flex gap-2">
+                    {campaign.urgent && (
+                      <Badge variant="destructive" className="bg-red-500 text-white shadow-sm animate-pulse">
+                        Срочно
+                      </Badge>
+                    )}
                         {campaign.category && (
-                          <Badge variant="secondary" className="bg-white/90 text-foreground backdrop-blur-sm shadow-sm">
-                            {campaign.category}
-                          </Badge>
+                    <Badge variant="secondary" className="bg-white/90 text-foreground backdrop-blur-sm shadow-sm">
+                      {campaign.category}
+                    </Badge>
                         )}
-                      </div>
-                      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
                         {campaign.partner && campaign.partner.id && campaign.partner.name && (
                           <Link href={`/partners/${campaign.partner.id}`} onClick={(e) => e.stopPropagation()}>
                             <p className="text-white text-xs font-medium hover:underline cursor-pointer inline-block">{campaign.partner.name}</p>
-                          </Link>
+                     </Link>
                         )}
-                      </div>
-                    </div>
-                    <CardContent className="p-4 space-y-4">
-                      <div>
+                  </div>
+                </div>
+                <CardContent className="p-4 space-y-4">
+                  <div>
                         <h3 className="font-bold text-lg leading-tight mb-1">{campaign.title || 'Без названия'}</h3>
-                        <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                    <div className="flex justify-between text-sm text-muted-foreground mb-2">
                           <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {campaign.participantCount || 0}</span>
                           {daysLeft !== null && (
                             <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {daysLeft > 0 ? `${daysLeft} дн.` : 'Завершено'}</span>
                           )}
-                        </div>
-                      </div>
+                    </div>
+                  </div>
 
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between text-sm font-medium">
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-sm font-medium">
                           <span className="text-primary">{collected.toLocaleString()} ₽</span>
                           <span className="text-muted-foreground">{goal.toLocaleString()} ₽</span>
-                        </div>
-                        <Progress value={progress} className="h-2 bg-primary/10" />
-                      </div>
-                    </CardContent>
-                    <CardFooter className="p-4 pt-0">
+                    </div>
+                    <Progress value={progress} className="h-2 bg-primary/10" />
+                  </div>
+                </CardContent>
+                <CardFooter className="p-4 pt-0">
                       <Button 
                         className="w-full font-medium shadow-sm bg-[#3E5F43] hover:bg-[#2F4832] text-white"
                         onClick={(e) => {
@@ -578,17 +577,17 @@ export default function CampaignsPage() {
                           setDonationModalOpen(true);
                         }}
                       >
-                        Помочь сейчас
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                );
-              })}
-              <div className="pt-4 pb-2">
-                <Button variant="ghost" className="w-full text-muted-foreground hover:text-primary hover:bg-primary/5">
-                  Показать еще
-                </Button>
-              </div>
+                    Помочь сейчас
+                  </Button>
+                </CardFooter>
+              </Card>
+            );
+          })}
+          <div className="pt-4 pb-2">
+            <Button variant="ghost" className="w-full text-muted-foreground hover:text-primary hover:bg-primary/5">
+              Показать еще
+            </Button>
+          </div>
             </>
           ) : (
             <EmptyState
@@ -747,16 +746,16 @@ export default function CampaignsPage() {
                       render={({ field }) => (
                         <Select value={field.value} onValueChange={field.onChange}>
                           <SelectTrigger className={cn(campaignForm.formState.errors.category && "border-destructive")}>
-                            <SelectValue placeholder="Выберите категорию" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="mosque">Мечеть</SelectItem>
-                            <SelectItem value="orphans">Помощь сиротам</SelectItem>
-                            <SelectItem value="education">Образование</SelectItem>
-                            <SelectItem value="water">Колодцы</SelectItem>
-                            <SelectItem value="other">Другое (указать)</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <SelectValue placeholder="Выберите категорию" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="mosque">Мечеть</SelectItem>
+                        <SelectItem value="orphans">Помощь сиротам</SelectItem>
+                        <SelectItem value="education">Образование</SelectItem>
+                        <SelectItem value="water">Колодцы</SelectItem>
+                        <SelectItem value="other">Другое (указать)</SelectItem>
+                      </SelectContent>
+                    </Select>
                       )}
                     />
                     {campaignForm.watch("category") === "other" && (
@@ -764,8 +763,8 @@ export default function CampaignsPage() {
                         name="customCategory"
                         control={campaignForm.control}
                         render={({ field }) => (
-                          <Input 
-                            placeholder="Введите название категории" 
+                      <Input 
+                        placeholder="Введите название категории" 
                             className={cn("mt-2", campaignForm.formState.errors.customCategory && "border-destructive")}
                             {...field}
                           />
@@ -800,7 +799,7 @@ export default function CampaignsPage() {
                             !partnersLoading && partners.length === 0 && "border-amber-300"
                           )}>
                             <SelectValue placeholder={partnersLoading ? "Загрузка фондов..." : "Выберите фонд из списка партнёров"} />
-                          </SelectTrigger>
+                      </SelectTrigger>
                           <SelectContent className="max-h-[300px]">
                             {partnersLoading ? (
                               <div className="p-4 text-center text-sm text-muted-foreground">
@@ -850,8 +849,8 @@ export default function CampaignsPage() {
                                 </SelectItem>
                               ))
                             )}
-                          </SelectContent>
-                        </Select>
+                      </SelectContent>
+                    </Select>
                       )}
                     />
                     {campaignForm.formState.errors.partnerId && (
@@ -892,14 +891,14 @@ export default function CampaignsPage() {
                         control={campaignForm.control}
                         render={({ field }) => (
                           <Select value={field.value} onValueChange={field.onChange}>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
                               <SelectItem value="RUB">RUB</SelectItem>
                               <SelectItem value="USD">USD</SelectItem>
-                            </SelectContent>
-                          </Select>
+                        </SelectContent>
+                      </Select>
                         )}
                       />
                     </div>
@@ -953,10 +952,10 @@ export default function CampaignsPage() {
                       name="fullDescription"
                       control={campaignForm.control}
                       render={({ field }) => (
-                        <Textarea 
-                          placeholder="Расскажите свою историю подробно. Почему эта кампания важна? Кому она поможет?" 
+                    <Textarea 
+                      placeholder="Расскажите свою историю подробно. Почему эта кампания важна? Кому она поможет?" 
                           className={cn("min-h-[120px]", campaignForm.formState.errors.fullDescription && "border-destructive")}
-                          maxLength={2000}
+                      maxLength={2000}
                           {...field}
                         />
                       )}
@@ -1101,71 +1100,71 @@ export default function CampaignsPage() {
                   ? Math.ceil((new Date(campaign.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
                   : null;
                 
-                return (
-                  <Card 
-                    key={campaign.id} 
-                    className="overflow-hidden border-none shadow-md group cursor-pointer active:scale-[0.98] transition-transform"
-                    onClick={() => openDetails(campaign)}
-                  >
-                    <div className="relative h-40 overflow-hidden">
-                      <img 
+            return (
+              <Card 
+                key={campaign.id} 
+                className="overflow-hidden border-none shadow-md group cursor-pointer active:scale-[0.98] transition-transform"
+                onClick={() => openDetails(campaign)}
+              >
+                <div className="relative h-40 overflow-hidden">
+                  <img 
                         src={campaign.image || '/placeholder-campaign.jpg'} 
                         alt={campaign.title || 'Кампания'} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-100 z-10">
-                        <Button 
-                          size="icon" 
-                          variant="secondary" 
-                          className={cn(
-                            "h-8 w-8 rounded-full bg-white/90 shadow-sm transition-colors", 
-                            favorites.includes(campaign.id) ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-red-500"
-                          )}
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            toggleFavorite(campaign.id);
-                          }}
-                        >
-                          <Heart className={cn("w-4 h-4", favorites.includes(campaign.id) && "fill-current")} />
-                        </Button>
-                        <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full bg-white/90 text-muted-foreground hover:text-primary shadow-sm" onClick={(e) => { e.stopPropagation(); }}>
-                          <MessageCircle className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <div className="absolute top-2 right-2 flex gap-2">
-                        {campaign.urgent && (
-                          <Badge variant="destructive" className="bg-red-500 text-white shadow-sm animate-pulse">
-                            Срочно
-                          </Badge>
-                        )}
-                        <Badge variant="secondary" className="bg-white/90 text-foreground backdrop-blur-sm shadow-sm">
-                          {campaign.category}
-                        </Badge>
-                      </div>
-                      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-100 z-10">
+                    <Button 
+                      size="icon" 
+                      variant="secondary" 
+                      className={cn(
+                        "h-8 w-8 rounded-full bg-white/90 shadow-sm transition-colors", 
+                        favorites.includes(campaign.id) ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-red-500"
+                      )}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        toggleFavorite(campaign.id);
+                      }}
+                    >
+                      <Heart className={cn("w-4 h-4", favorites.includes(campaign.id) && "fill-current")} />
+                    </Button>
+                    <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full bg-white/90 text-muted-foreground hover:text-primary shadow-sm" onClick={(e) => { e.stopPropagation(); }}>
+                      <MessageCircle className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="absolute top-2 right-2 flex gap-2">
+                    {campaign.urgent && (
+                      <Badge variant="destructive" className="bg-red-500 text-white shadow-sm animate-pulse">
+                        Срочно
+                      </Badge>
+                    )}
+                    <Badge variant="secondary" className="bg-white/90 text-foreground backdrop-blur-sm shadow-sm">
+                      {campaign.category}
+                    </Badge>
+                  </div>
+                   <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
                         <p className="text-white text-xs font-medium">Автор: {campaign.author?.fullName || campaign.author?.username || 'Пользователь'}</p>
-                      </div>
-                    </div>
-                    <CardContent className="p-4 space-y-4">
-                      <div>
-                        <h3 className="font-bold text-lg leading-tight mb-1">{campaign.title}</h3>
-                        <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                  </div>
+                </div>
+                <CardContent className="p-4 space-y-4">
+                  <div>
+                    <h3 className="font-bold text-lg leading-tight mb-1">{campaign.title}</h3>
+                    <div className="flex justify-between text-sm text-muted-foreground mb-2">
                           <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {campaign.participantCount || 0}</span>
                           {daysLeft !== null && (
                             <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {daysLeft > 0 ? `${daysLeft} дн.` : 'Завершено'}</span>
                           )}
-                        </div>
-                      </div>
+                    </div>
+                  </div>
 
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between text-sm font-medium">
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-sm font-medium">
                           <span className="text-primary">{collected.toLocaleString()} ₽</span>
                           <span className="text-muted-foreground">{goal.toLocaleString()} ₽</span>
-                        </div>
-                        <Progress value={progress} className="h-2 bg-primary/10" />
-                      </div>
-                    </CardContent>
-                    <CardFooter className="p-4 pt-0">
+                    </div>
+                    <Progress value={progress} className="h-2 bg-primary/10" />
+                  </div>
+                </CardContent>
+                <CardFooter className="p-4 pt-0">
                       <Button 
                         className="w-full font-medium shadow-sm"
                         onClick={(e) => {
@@ -1174,12 +1173,12 @@ export default function CampaignsPage() {
                           setDonationModalOpen(true);
                         }}
                       >
-                        Помочь сейчас
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                );
-              })}
+                    Помочь сейчас
+                  </Button>
+                </CardFooter>
+              </Card>
+            );
+          })}
             </>
           ) : (
             <Card className="border-none shadow-sm">
@@ -1206,29 +1205,29 @@ export default function CampaignsPage() {
                 : null;
               
               return (
-                <Card key={campaign.id} className="overflow-hidden border-none shadow-sm opacity-80 hover:opacity-100 transition-opacity">
-                  <div className="h-32 relative grayscale">
+            <Card key={campaign.id} className="overflow-hidden border-none shadow-sm opacity-80 hover:opacity-100 transition-opacity">
+              <div className="h-32 relative grayscale">
                     <img src={campaign.image || '/placeholder-campaign.jpg'} className="w-full h-full object-cover" alt={campaign.title} />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                      <Badge variant="secondary" className="bg-white/90 text-black font-bold">Сбор закрыт</Badge>
-                    </div>
-                  </div>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-bold text-base leading-tight line-clamp-2">{campaign.title}</h3>
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                  <Badge variant="secondary" className="bg-white/90 text-black font-bold">Сбор закрыт</Badge>
+                </div>
+              </div>
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start mb-2">
+                   <h3 className="font-bold text-base leading-tight line-clamp-2">{campaign.title}</h3>
                       {finishDate && (
                         <Badge variant="outline" className="text-[10px] h-5">{finishDate}</Badge>
                       )}
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
                       {campaign.partner ? `Фонд: ${campaign.partner.name}` : campaign.author ? `Автор: ${campaign.author.fullName || campaign.author.username}` : 'Организатор'}
-                    </p>
-                    <div className="bg-emerald-50 p-3 rounded-lg flex items-center justify-between text-emerald-800 text-sm font-medium">
-                      <span>Собрано:</span>
+                </p>
+                <div className="bg-emerald-50 p-3 rounded-lg flex items-center justify-between text-emerald-800 text-sm font-medium">
+                  <span>Собрано:</span>
                       <span>{collected.toLocaleString()} ₽</span>
-                    </div>
-                  </CardContent>
-                </Card>
+                </div>
+              </CardContent>
+            </Card>
               );
             })
           ) : (
@@ -1251,69 +1250,69 @@ export default function CampaignsPage() {
                 ? Math.ceil((new Date(campaign.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
                 : null;
               
-              return (
-                <Card 
-                  key={campaign.id} 
-                  className="overflow-hidden border-none shadow-md group cursor-pointer active:scale-[0.98] transition-transform"
-                  onClick={() => openDetails(campaign)}
-                >
-                  <div className="relative h-40 overflow-hidden">
-                    <img 
+                return (
+                  <Card 
+                    key={campaign.id} 
+                    className="overflow-hidden border-none shadow-md group cursor-pointer active:scale-[0.98] transition-transform"
+                    onClick={() => openDetails(campaign)}
+                  >
+                    <div className="relative h-40 overflow-hidden">
+                      <img 
                       src={campaign.image || '/placeholder-campaign.jpg'} 
-                      alt={campaign.title} 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-100 transition-opacity z-10">
-                      <Button 
-                        size="icon" 
-                        variant="secondary" 
-                        className="h-8 w-8 rounded-full bg-white/90 shadow-sm transition-colors text-red-500 hover:text-red-600"
-                        onClick={(e) => { 
-                          e.stopPropagation(); 
-                          toggleFavorite(campaign.id);
-                        }}
-                      >
-                        <Heart className="w-4 h-4 fill-current" />
-                      </Button>
-                    </div>
-                    <div className="absolute top-2 right-2 flex gap-2">
-                      {campaign.urgent && (
-                        <Badge variant="destructive" className="bg-red-500 text-white shadow-sm animate-pulse">
-                          Срочно
+                        alt={campaign.title} 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-100 transition-opacity z-10">
+                        <Button 
+                          size="icon" 
+                          variant="secondary" 
+                          className="h-8 w-8 rounded-full bg-white/90 shadow-sm transition-colors text-red-500 hover:text-red-600"
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            toggleFavorite(campaign.id);
+                          }}
+                        >
+                          <Heart className="w-4 h-4 fill-current" />
+                        </Button>
+                      </div>
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        {campaign.urgent && (
+                          <Badge variant="destructive" className="bg-red-500 text-white shadow-sm animate-pulse">
+                            Срочно
+                          </Badge>
+                        )}
+                        <Badge variant="secondary" className="bg-white/90 text-foreground backdrop-blur-sm shadow-sm">
+                          {campaign.category}
                         </Badge>
-                      )}
-                      <Badge variant="secondary" className="bg-white/90 text-foreground backdrop-blur-sm shadow-sm">
-                        {campaign.category}
-                      </Badge>
+                      </div>
                     </div>
-                  </div>
-                  <CardContent className="p-4 space-y-4">
-                    <div>
-                      <h3 className="font-bold text-lg leading-tight mb-1">{campaign.title}</h3>
-                      <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                    <CardContent className="p-4 space-y-4">
+                      <div>
+                        <h3 className="font-bold text-lg leading-tight mb-1">{campaign.title}</h3>
+                        <div className="flex justify-between text-sm text-muted-foreground mb-2">
                         <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {campaign.participantCount || 0}</span>
                         {daysLeft !== null && (
                           <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {daysLeft > 0 ? `${daysLeft} дн.` : 'Завершено'}</span>
                         )}
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between text-sm font-medium">
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-sm font-medium">
                         <span className="text-primary">{collected.toLocaleString()} ₽</span>
                         <span className="text-muted-foreground">{goal.toLocaleString()} ₽</span>
+                        </div>
+                        <Progress value={progress} className="h-2 bg-primary/10" />
                       </div>
-                      <Progress value={progress} className="h-2 bg-primary/10" />
-                    </div>
-                  </CardContent>
-                  <CardFooter className="p-4 pt-0">
-                    <Button className="w-full font-medium shadow-sm bg-[#3E5F43] hover:bg-[#2F4832] text-white">
-                      Помочь сейчас
-                    </Button>
-                  </CardFooter>
-                </Card>
-              );
-            })
+                    </CardContent>
+                    <CardFooter className="p-4 pt-0">
+                      <Button className="w-full font-medium shadow-sm bg-[#3E5F43] hover:bg-[#2F4832] text-white">
+                        Помочь сейчас
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                );
+              })
           ) : (
             <EmptyState
               icon={HeartIcon}
@@ -1412,7 +1411,7 @@ export default function CampaignsPage() {
                       </Button>
                     )}
                   </div>
-
+                  
                   {/* Comment Form */}
                   {commentFormOpen && isAuthenticated && (
                     <form onSubmit={commentForm.handleSubmit((data) => {
@@ -1493,7 +1492,7 @@ export default function CampaignsPage() {
                       <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                     </div>
                   ) : (
-                    <div className="space-y-3">
+                  <div className="space-y-3">
                       {(() => {
                         const comments = commentsData?.data;
                         let commentsList: any[] = [];
@@ -1533,7 +1532,7 @@ export default function CampaignsPage() {
 
                           return (
                             <div key={comment.id} className="bg-muted/20 p-3 rounded-xl space-y-1">
-                              <div className="flex justify-between items-start">
+                      <div className="flex justify-between items-start">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2">
                                     <span className="font-medium text-sm">{authorName}</span>
@@ -1542,11 +1541,11 @@ export default function CampaignsPage() {
                                         Вы
                                       </Badge>
                                     )}
-                                  </div>
+                      </div>
                                   <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">
                                     {comment.content}
                                   </p>
-                                </div>
+                    </div>
                                 <div className="flex items-start gap-2">
                                   <span className="text-[10px] text-muted-foreground whitespace-nowrap">
                                     {timeAgo}
@@ -1565,9 +1564,9 @@ export default function CampaignsPage() {
                                       <X className="w-3 h-3" />
                                     </Button>
                                   )}
-                                </div>
-                              </div>
-                            </div>
+                      </div>
+                    </div>
+                  </div>
                           );
                         });
                       })()}
