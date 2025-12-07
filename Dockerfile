@@ -36,11 +36,7 @@ RUN npm install
 
 # Copy backend source
 COPY server ./server
-COPY prisma ./prisma
 COPY script ./script
-
-# Generate Prisma client
-RUN npx prisma generate
 
 # Build backend only (frontend already built in previous stage)
 # Copy script to use its build logic
@@ -49,15 +45,15 @@ RUN mkdir -p dist && npx esbuild server/index.ts \
   --platform=node \
   --format=cjs \
   --outfile=dist/index.cjs \
-  --external:@prisma/client \
-  --external:@prisma/adapter-pg \
-  --external:pg \
+  --external:mongodb \
   --external:express \
   --external:express-session \
+  --external:connect-mongo \
   --external:multer \
   --external:zod \
   --external:nanoid \
   --external:ws \
+  --external:dotenv \
   --minify \
   --define:"process.env.NODE_ENV=\"production\""
 
@@ -73,11 +69,6 @@ RUN npm install --only=production
 # Copy built files
 COPY --from=frontend-builder /app/dist/public ./dist/public
 COPY --from=backend-builder /app/dist ./dist
-COPY --from=backend-builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=backend-builder /app/node_modules/@prisma ./node_modules/@prisma
-
-# Copy Prisma schema
-COPY prisma ./prisma
 
 # Create uploads directory
 RUN mkdir -p uploads

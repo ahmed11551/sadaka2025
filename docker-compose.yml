@@ -1,18 +1,18 @@
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:16-alpine
-    container_name: sadakapass-db
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: sadakapass-mongodb
     environment:
-      POSTGRES_USER: sadakapass
-      POSTGRES_PASSWORD: sadakapass_password
-      POSTGRES_DB: sadakapass
+      MONGO_INITDB_ROOT_USERNAME: sadakapass
+      MONGO_INITDB_ROOT_PASSWORD: sadakapass_password
+      MONGO_INITDB_DATABASE: sadaka2025
     ports:
-      - "5432:5432"
+      - "27017:27017"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mongodb_data:/data/db
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sadakapass"]
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -28,23 +28,26 @@ services:
     environment:
       NODE_ENV: production
       PORT: 5000
-      DATABASE_URL: postgresql://sadakapass:sadakapass_password@postgres:5432/sadakapass?schema=public
+      MONGODB_URI: mongodb://sadakapass:sadakapass_password@mongodb:27017/sadaka2025?authSource=admin
       SESSION_SECRET: ${SESSION_SECRET:-change-this-in-production}
       API_BASE_URL: ${API_BASE_URL:-https://bot.e-replika.ru/api/v1}
       API_TOKEN: ${API_TOKEN:-test_token_123}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:5000/api}
+      VITE_API_TOKEN: ${VITE_API_TOKEN:-test_token_123}
+      VITE_INSAN_API_URL: ${VITE_INSAN_API_URL:-https://fondinsan.ru/api/v1}
+      VITE_INSAN_ACCESS_TOKEN: ${VITE_INSAN_ACCESS_TOKEN:-}
     ports:
       - "5000:5000"
     volumes:
       - ./uploads:/app/uploads
     depends_on:
-      postgres:
+      mongodb:
         condition: service_healthy
     command: >
       sh -c "
-        export DATABASE_URL='postgresql://sadakapass:sadakapass_password@postgres:5432/sadakapass?schema=public' &&
-        echo 'Waiting for database...' &&
-        sleep 10 &&
-        echo 'Starting server (migrations will be applied on first run if needed)...' &&
+        echo 'Waiting for MongoDB...' &&
+        sleep 5 &&
+        echo 'Starting server...' &&
         node dist/index.cjs
       "
     networks:
@@ -52,7 +55,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  mongodb_data:
 
 networks:
   sadakapass-network:
