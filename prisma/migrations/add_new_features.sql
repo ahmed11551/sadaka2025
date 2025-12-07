@@ -62,3 +62,17 @@ CREATE TABLE IF NOT EXISTS "reports" (
 CREATE INDEX IF NOT EXISTS "reports_fundId_idx" ON "reports"("fundId");
 CREATE INDEX IF NOT EXISTS "reports_periodStart_idx" ON "reports"("periodStart");
 
+-- ============= ZAKAT CALCULATIONS TABLE =============
+CREATE TABLE IF NOT EXISTS "zakat_calculations" (
+    "id" TEXT NOT NULL PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    "userId" TEXT NOT NULL,
+    "payloadJson" TEXT NOT NULL,
+    "zakatDue" DECIMAL(15, 2) NOT NULL,
+    "aboveNisab" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "zakat_calculations_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS "zakat_calculations_userId_idx" ON "zakat_calculations"("userId");
+CREATE INDEX IF NOT EXISTS "zakat_calculations_createdAt_idx" ON "zakat_calculations"("createdAt");
+
