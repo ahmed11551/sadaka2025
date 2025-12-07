@@ -271,14 +271,18 @@ export function DonationModal({
               type="submit"
               className="w-full sm:w-auto bg-[#3E5F43] hover:bg-[#2F4832] text-white"
               disabled={createDonation.isPending || !selectedAmount || !paymentMethod}
+              aria-label={createDonation.isPending ? "Обработка пожертвования..." : `Пожертвовать ${selectedAmount ? `${selectedAmount} рублей` : ''}`}
             >
               {createDonation.isPending ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
                   Обработка...
                 </>
               ) : (
-                "Пожертвовать"
+                <>
+                  <Heart className="w-4 h-4 mr-2" aria-hidden="true" />
+                  Пожертвовать
+                </>
               )}
             </Button>
           </DialogFooter>

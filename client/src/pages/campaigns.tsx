@@ -23,6 +23,9 @@ import { DonationModal } from "@/components/donation-modal";
 import { useAuth } from "@/hooks/use-auth";
 import { campaignFormSchema, commentFormSchema, type CampaignFormData, type CommentFormData } from "@/lib/validators";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/empty-state";
+import { LoadingState } from "@/components/loading-state";
+import { Building2, User, Check, Heart as HeartIcon } from "lucide-react";
 
 // Helper function to format time ago
 function getTimeAgo(date: Date): string {
@@ -467,9 +470,7 @@ export default function CampaignsPage() {
 
         <TabsContent value="funds" className="space-y-4 mt-0">
           {fundCampaignsLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-            </div>
+            <LoadingState text="Загрузка кампаний фондов..." />
           ) : fundCampaigns.length > 0 ? (
             <>
               {fundCampaigns.map((campaign: any) => {
@@ -573,11 +574,15 @@ export default function CampaignsPage() {
               </div>
             </>
           ) : (
-            <Card className="border-none shadow-sm">
-              <CardContent className="p-12 text-center">
-                <p className="text-muted-foreground">Нет кампаний фондов</p>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={Building2}
+              title="Нет кампаний фондов"
+              description="Кампании фондов скоро появятся. Следите за обновлениями!"
+              action={{
+                label: "Обновить",
+                onClick: () => window.location.reload()
+              }}
+            />
           )}
         </TabsContent>
 
@@ -1017,9 +1022,7 @@ export default function CampaignsPage() {
             </DialogContent>
           </Dialog>
           {privateCampaignsLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-            </div>
+            <LoadingState text="Загрузка частных кампаний..." />
           ) : privateCampaigns.length > 0 ? (
             <>
               {privateCampaigns.map((campaign: any) => {
@@ -1126,9 +1129,7 @@ export default function CampaignsPage() {
 
         <TabsContent value="completed" className="space-y-4 mt-0">
           {completedCampaignsLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-            </div>
+            <LoadingState text="Загрузка завершенных кампаний..." />
           ) : completedCampaigns.length > 0 ? (
             completedCampaigns.map((campaign: any) => {
               const collected = Number(campaign.collected || 0);
@@ -1163,18 +1164,16 @@ export default function CampaignsPage() {
               );
             })
           ) : (
-            <Card className="border-none shadow-sm">
-              <CardContent className="p-12 text-center">
-                <p className="text-muted-foreground">Нет завершенных кампаний</p>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={Check}
+              title="Нет завершенных кампаний"
+              description="Завершенные кампании будут отображаться здесь"
+            />
           )}
         </TabsContent>
         <TabsContent value="favorites" className="space-y-4 mt-0">
           {favoriteCampaignsLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-            </div>
+            <LoadingState text="Загрузка избранных кампаний..." />
           ) : favoriteCampaigns.length > 0 ? (
             favoriteCampaigns.map((campaign: any) => {
               const collected = Number(campaign.collected || 0);
@@ -1248,13 +1247,15 @@ export default function CampaignsPage() {
               );
             })
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
-                <Heart className="w-8 h-8 text-muted-foreground opacity-50" />
-              </div>
-              <p className="text-muted-foreground">В избранном пока пусто</p>
-              <Button variant="outline" onClick={() => setActiveTab("funds")}>Найти проекты</Button>
-            </div>
+            <EmptyState
+              icon={HeartIcon}
+              title="В избранном пока пусто"
+              description="Добавляйте кампании в избранное, чтобы вернуться к ним позже"
+              action={{
+                label: "Найти проекты",
+                onClick: () => setActiveTab("funds")
+              }}
+            />
           )}
         </TabsContent>
       </Tabs>

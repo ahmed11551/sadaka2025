@@ -20,6 +20,9 @@ import { usePartners } from "@/hooks/use-partners";
 import { useAuth } from "@/hooks/use-auth";
 import { DonationModal } from "@/components/donation-modal";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/empty-state";
+import { LoadingState } from "@/components/loading-state";
+import { AlertCircle, TrendingUp, Heart as HeartIcon } from "lucide-react";
 
 const fundsByCountry = {
   ru: [
@@ -471,8 +474,18 @@ export default function HomePage() {
                   </Card>
                 </Link>
               ) : (
-                <Card className="border-none shadow-md overflow-hidden relative h-48 flex items-center justify-center">
-                  <p className="text-muted-foreground">Нет срочных сборов</p>
+                <Card className="border-none shadow-md overflow-hidden relative min-h-[192px]">
+                  <CardContent className="p-6">
+                    <EmptyState
+                      icon={AlertCircle}
+                      title="Нет срочных сборов"
+                      description="Срочные сборы скоро появятся. Следите за обновлениями!"
+                      action={{
+                        label: "Посмотреть все кампании",
+                        onClick: () => window.location.href = "/campaigns"
+                      }}
+                    />
+                  </CardContent>
                 </Card>
               )}
             </div>
@@ -499,8 +512,10 @@ export default function HomePage() {
               </div>
 
               {campaignsLoading ? (
-                <Card className="border-none shadow-md overflow-hidden relative h-48 flex items-center justify-center">
-                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                <Card className="border-none shadow-md overflow-hidden relative min-h-[192px]">
+                  <CardContent className="p-6">
+                    <LoadingState size="md" text="Загрузка кампаний..." />
+                  </CardContent>
                 </Card>
               ) : activeUserCampaigns.length > 0 ? (
                 <Link href="/campaigns">
@@ -536,8 +551,18 @@ export default function HomePage() {
                   </Card>
                 </Link>
               ) : (
-                <Card className="border-none shadow-md overflow-hidden relative h-48 flex items-center justify-center">
-                  <p className="text-muted-foreground">Нет активных кампаний</p>
+                <Card className="border-none shadow-md overflow-hidden relative min-h-[192px]">
+                  <CardContent className="p-6">
+                    <EmptyState
+                      icon={TrendingUp}
+                      title="Нет активных кампаний"
+                      description="Активные кампании скоро появятся. Вы можете создать свою кампанию!"
+                      action={{
+                        label: "Создать кампанию",
+                        onClick: () => window.location.href = "/campaigns"
+                      }}
+                    />
+                  </CardContent>
                 </Card>
               )}
             </div>
@@ -549,15 +574,7 @@ export default function HomePage() {
                  <Link href="/campaigns?tab=completed" className="text-xs text-muted-foreground hover:underline">Архив</Link>
                </div>
                {campaignsLoading ? (
-                 <div className="grid grid-cols-2 gap-3">
-                   {[1, 2].map((i) => (
-                     <Card key={i} className="overflow-hidden border-none shadow-sm">
-                       <div className="h-24 relative flex items-center justify-center">
-                         <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                       </div>
-                     </Card>
-                   ))}
-                 </div>
+                 <LoadingState size="sm" text="Загрузка завершенных кампаний..." />
                ) : completedCampaigns.length > 0 ? (
                  <div className="grid grid-cols-2 gap-3">
                    {completedCampaigns.map((campaign) => (
@@ -576,11 +593,12 @@ export default function HomePage() {
                    ))}
                  </div>
                ) : (
-                 <Card className="border-none shadow-sm">
-                   <CardContent className="p-6 text-center">
-                     <p className="text-sm text-muted-foreground">Нет завершенных кампаний</p>
-                   </CardContent>
-                 </Card>
+                 <EmptyState
+                   icon={Check}
+                   title="Нет завершенных кампаний"
+                   description="Завершенные кампании будут отображаться здесь"
+                   className="py-8"
+                 />
                )}
             </div>
           </TabsContent>
