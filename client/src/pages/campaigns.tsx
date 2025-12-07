@@ -1036,7 +1036,7 @@ export default function CampaignsPage() {
                     <div className="relative h-40 overflow-hidden">
                       <img 
                         src={campaign.image || '/placeholder-campaign.jpg'} 
-                        alt={campaign.title} 
+                        alt={campaign.title || 'Кампания'} 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-100 z-10">
