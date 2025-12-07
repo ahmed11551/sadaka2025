@@ -95,32 +95,39 @@ export default function PartnersPage() {
   const { data: partnerCampaignsData, isLoading: partnerCampaignsLoading } = usePartnerCampaigns(selectedFund?.id || '', 1, 10);
   
   // Check if selected partner is Insan (by slug or id or name)
-  const isInsanPartner = 
-    selectedFund?.slug === 'insan' || 
-    partnerDetails?.data?.slug === 'insan' ||
-    selectedFund?.id === 'insan' ||
-    selectedFund?.name?.toLowerCase().includes('инсан') ||
-    selectedFund?.name?.toLowerCase().includes('ихсан');
+  const isInsanPartner = useMemo(() => {
+    const fundName = (selectedFund?.name || partnerDetails?.data?.name || '').toLowerCase();
+    const fundSlug = (selectedFund?.slug || partnerDetails?.data?.slug || '').toLowerCase();
+    const fundId = (selectedFund?.id || '').toLowerCase();
+    
+    return (
+      fundSlug === 'insan' || 
+      fundId === 'insan' ||
+      fundName.includes('инсан') ||
+      fundName.includes('ихсан') ||
+      fundName.includes('insan')
+    );
+  }, [selectedFund, partnerDetails]);
   
   // Always fetch Insan programs (they will be shown if partner is Insan)
   const { data: insanProgramsData, isLoading: insanProgramsLoading } = useInsanPrograms();
   const insanPrograms = Array.isArray(insanProgramsData) ? insanProgramsData : [];
   
-  // Debug logging
+  // Debug logging (only in development)
   useEffect(() => {
-    if (selectedFund) {
+    if (import.meta.env.DEV && selectedFund) {
       console.log('[PartnersPage] Selected fund:', {
         id: selectedFund.id,
         name: selectedFund.name,
         slug: selectedFund.slug,
         isInsanPartner,
       });
+      console.log('[PartnersPage] Insan programs:', {
+        count: insanPrograms.length,
+        isLoading: insanProgramsLoading,
+        data: insanPrograms.slice(0, 2),
+      });
     }
-    console.log('[PartnersPage] Insan programs:', {
-      count: insanPrograms.length,
-      isLoading: insanProgramsLoading,
-      data: insanPrograms.slice(0, 2), // First 2 programs for debugging
-    });
   }, [selectedFund, isInsanPartner, insanPrograms, insanProgramsLoading]);
 
   // Process partners data

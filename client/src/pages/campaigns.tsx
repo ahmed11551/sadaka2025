@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Clock, ArrowRight, Plus, Info, Upload, Search, Calendar, Check, Filter, Building2, User, FileText, X, Heart, MessageCircle, MapPin, Loader2 } from "lucide-react";
+import { Users, Clock, ArrowRight, Plus, Info, Upload, Search, Calendar, Check, Filter, Building2, User, FileText, X, Heart, MessageCircle, MapPin, Loader2, CheckCircle2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
 import { LoadingState } from "@/components/loading-state";
 import { Building2, User, Check, Heart as HeartIcon } from "lucide-react";
+import { usePartners } from "@/hooks/use-partners";
 
 // Helper function to format time ago
 function getTimeAgo(date: Date): string {
@@ -70,6 +71,22 @@ export default function CampaignsPage() {
   const [donationModalOpen, setDonationModalOpen] = useState(false);
   const [selectedCampaignForDonation, setSelectedCampaignForDonation] = useState<any>(null);
   const [commentFormOpen, setCommentFormOpen] = useState(false);
+  
+  // Fetch partners for fund selection
+  const { data: partnersData, isLoading: partnersLoading } = usePartners({ limit: 100 });
+  
+  // Process partners data
+  const partners = useMemo(() => {
+    if (!partnersData?.data) return [];
+    const data = partnersData.data;
+    if (Array.isArray(data)) {
+      return data.filter((p: any) => p && p.id && p.verified);
+    }
+    if (data && typeof data === 'object' && 'items' in data) {
+      return Array.isArray(data.items) ? data.items.filter((p: any) => p && p.id && p.verified) : [];
+    }
+    return [];
+  }, [partnersData]);
   
   // Campaign creation form with react-hook-form
   const campaignForm = useForm<CampaignFormData>({
@@ -774,14 +791,62 @@ export default function CampaignsPage() {
                       control={campaignForm.control}
                       render={({ field }) => (
                         <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger className={cn(campaignForm.formState.errors.partnerId && "border-destructive")}>
-                            <SelectValue placeholder="Выберите фонд из списка партнёров" />
+                          <SelectTrigger className={cn(
+                            "h-12 text-base",
+                            campaignForm.formState.errors.partnerId && "border-destructive",
+                            !partnersLoading && partners.length === 0 && "border-amber-300"
+                          )}>
+                            <SelectValue placeholder={partnersLoading ? "Загрузка фондов..." : "Выберите фонд из списка партнёров"} />
                           </SelectTrigger>
-                          <SelectContent>
-                            {/* TODO: Загрузить реальные партнеры из API */}
-                            <SelectItem value="insan">Фонд Инсан</SelectItem>
-                            <SelectItem value="zakat">Закят.Ру</SelectItem>
-                            <SelectItem value="salsabil">Сальсабиль</SelectItem>
+                          <SelectContent className="max-h-[300px]">
+                            {partnersLoading ? (
+                              <div className="p-4 text-center text-sm text-muted-foreground">
+                                <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" />
+                                Загрузка...
+                              </div>
+                            ) : partners.length === 0 ? (
+                              <div className="p-4 text-center text-sm text-muted-foreground">
+                                Фонды-партнёры не найдены
+                              </div>
+                            ) : (
+                              partners.map((partner: any) => (
+                                <SelectItem 
+                                  key={partner.id} 
+                                  value={partner.id}
+                                  className="py-3 cursor-pointer hover:bg-muted/50"
+                                >
+                                  <div className="flex items-center gap-3 w-full">
+                                    {partner.logo ? (
+                                      <img 
+                                        src={partner.logo} 
+                                        alt={partner.name}
+                                        className="w-8 h-8 rounded-lg object-cover shrink-0"
+                                        onError={(e) => {
+                                          (e.target as HTMLImageElement).style.display = 'none';
+                                        }}
+                                      />
+                                    ) : (
+                                      <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                                        <Building2 className="w-4 h-4 text-muted-foreground" />
+                                      </div>
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium truncate">{partner.name || 'Без названия'}</span>
+                                        {partner.verified && (
+                                          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                                        )}
+                                      </div>
+                                      {partner.country && (
+                                        <span className="text-xs text-muted-foreground block truncate">
+                                          {partner.country === 'ru' ? 'Россия' : partner.country === 'uz' ? 'Узбекистан' : partner.country === 'tr' ? 'Турция' : partner.country}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
                       )}
@@ -789,7 +854,7 @@ export default function CampaignsPage() {
                     {campaignForm.formState.errors.partnerId && (
                       <p className="text-sm text-destructive">{campaignForm.formState.errors.partnerId.message}</p>
                     )}
-                    <p className="text-xs text-emerald-600 cursor-pointer" onClick={navigateToPartners}>
+                    <p className="text-xs text-emerald-600 cursor-pointer hover:underline" onClick={navigateToPartners}>
                       Не нашли нужный фонд? Посмотрите все фонды-партнёры
                     </p>
                   </div>
