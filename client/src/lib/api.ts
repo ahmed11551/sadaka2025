@@ -1,6 +1,17 @@
 // API Configuration
+// For Vercel deployment: use direct API URL or set VITE_API_BASE_URL env variable
+// For local development with backend: use '/api/external' for proxy
+const getDefaultApiUrl = () => {
+  // In production on Vercel, use direct API (no backend proxy available)
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    return 'https://bot.e-replika.ru/api/v1';
+  }
+  // For local development, try proxy first, fallback to direct
+  return '/api/external';
+};
+
 const API_BASE_URL = typeof window !== 'undefined' 
-  ? (import.meta.env.VITE_API_BASE_URL || '/api/external')
+  ? (import.meta.env.VITE_API_BASE_URL || getDefaultApiUrl())
   : (process.env.VITE_API_BASE_URL || 'https://bot.e-replika.ru/api/v1');
 const API_TOKEN = import.meta.env.VITE_API_TOKEN || process.env.VITE_API_TOKEN || 'test_token_123';
 

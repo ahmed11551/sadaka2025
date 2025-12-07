@@ -20,16 +20,18 @@
 
 3. **Настройте переменные окружения:**
    
-   Добавьте в Vercel Environment Variables:
+   ⚠️ **ОБЯЗАТЕЛЬНО** добавьте в Vercel Dashboard → Project Settings → Environment Variables:
    
-   ```
-   VITE_API_BASE_URL = https://ваш-backend-url.com/api/external
-   ```
-   
-   Или если backend на другом домене:
+   Для Production, Preview и Development:
    ```
    VITE_API_BASE_URL = https://bot.e-replika.ru/api/v1
+   VITE_API_TOKEN = test_token_123
    ```
+   
+   **Важно**: 
+   - Приложение автоматически определит что работает на Vercel и использует прямой доступ к API
+   - Если вы хотите использовать свой backend с прокси, установите `VITE_API_BASE_URL = https://ваш-backend-url.com/api/external`
+   - Без этих переменных приложение будет использовать дефолтные значения (должно работать, но лучше указать явно)
 
 4. **Важно:** 
    - Frontend будет обращаться к backend через API_BASE_URL
