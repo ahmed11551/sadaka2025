@@ -1,7 +1,7 @@
 // YooKassa Payment Service
 // Documentation: https://yookassa.ru/developers/api
 
-const crypto = require('crypto');
+import crypto from 'node:crypto';
 
 const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID;
 const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY;
