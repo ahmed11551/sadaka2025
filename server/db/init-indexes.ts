@@ -1,4 +1,14 @@
 // Скрипт для создания индексов MongoDB
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Загружаем .env из корня проекта
+dotenv.config({ path: join(__dirname, '../../.env') });
+
 import { connectToMongoDB } from './mongodb.js';
 import { UserRepositoryMongo } from '../repositories/user.repository.mongo.js';
 import { CampaignRepositoryMongo } from '../repositories/campaign.repository.mongo.js';
