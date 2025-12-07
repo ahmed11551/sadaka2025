@@ -1,5 +1,5 @@
 import prisma from './client';
-import { Prisma } from '@prisma/client';
+// import { Prisma } from '@prisma/client'; // MongoDB only
 
 async function seedPartners() {
   const partners = [

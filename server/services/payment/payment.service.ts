@@ -4,7 +4,7 @@
 import { YooKassaService } from './yookassa.service';
 import { CloudPaymentsService } from './cloudpayments.service';
 import prisma from '../../db/client';
-import { Prisma } from '@prisma/client';
+// import { Prisma } from '@prisma/client'; // MongoDB only
 
 export type PaymentProvider = 'yookassa' | 'cloudpayments';
 

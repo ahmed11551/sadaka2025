@@ -1,5 +1,5 @@
 import prisma from '../db/client';
-import { Prisma } from '@prisma/client';
+// import { Prisma } from '@prisma/client'; // MongoDB only
 import { PaginationParams } from '../types';
 
 export class CommentRepository {

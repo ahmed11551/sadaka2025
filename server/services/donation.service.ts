@@ -3,7 +3,7 @@ import { CampaignRepository } from '../repositories/campaign.repository';
 import { PartnerRepository } from '../repositories/partner.repository';
 import { DonationCreateInput, PaginationParams } from '../types';
 import { NotFoundError } from '../utils/errors';
-import { Prisma } from '@prisma/client';
+// import { Prisma } from '@prisma/client'; // MongoDB only
 import { PaymentService } from './payment/payment.service';
 
 export class DonationService {

@@ -2,7 +2,7 @@
 
 import { ZakatRepository } from '../repositories/zakat.repository';
 import { DonationService } from './donation.service';
-import { Prisma } from '@prisma/client';
+// import { Prisma } from '@prisma/client'; // MongoDB only
 
 export interface ZakatCalculationInput {
   assets: {

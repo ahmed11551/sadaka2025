@@ -1,7 +1,7 @@
 // Subscription Service - Handle recurring payments for subscriptions
 
 import prisma from '../db/client';
-import { Prisma } from '@prisma/client';
+// import { Prisma } from '@prisma/client'; // MongoDB only
 import { CloudPaymentsService } from './payment/cloudpayments.service';
 import { PaymentService } from './payment/payment.service';
 

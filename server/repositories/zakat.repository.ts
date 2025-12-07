@@ -1,7 +1,7 @@
 // Zakat Repository - Database operations for zakat calculations
 
 import prisma from '../db/client';
-import { Prisma } from '@prisma/client';
+// import { Prisma } from '@prisma/client'; // MongoDB only
 
 export interface PaginationParams {
   page?: number;

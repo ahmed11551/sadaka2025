@@ -1,7 +1,7 @@
 import { CampaignRepository } from '../repositories/campaign.repository';
 import { CampaignFilters, PaginationParams } from '../types';
 import { ForbiddenError } from '../utils/errors';
-import { Prisma } from '@prisma/client';
+// import { Prisma } from '@prisma/client'; // MongoDB only
 
 export class CampaignService {
   private campaignRepository: CampaignRepository;

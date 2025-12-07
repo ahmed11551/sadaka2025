@@ -1,7 +1,7 @@
 // Report Service - Generate PDF/CSV reports for donations, campaigns, funds
 
 import prisma from '../db/client';
-import { Prisma } from '@prisma/client';
+// import { Prisma } from '@prisma/client'; // MongoDB only
 
 export interface ReportFilters {
   userId?: string;

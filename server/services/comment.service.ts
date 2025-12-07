@@ -1,6 +1,6 @@
 import { CommentRepository } from '../repositories/comment.repository';
 import { PaginationParams } from '../types';
-import { Prisma } from '@prisma/client';
+// import { Prisma } from '@prisma/client'; // MongoDB only
 
 export class CommentService {
   private commentRepository: CommentRepository;

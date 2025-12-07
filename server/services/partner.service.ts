@@ -1,6 +1,6 @@
 import { PartnerRepository } from '../repositories/partner.repository';
 import { PaginationParams } from '../types';
-import { Prisma } from '@prisma/client';
+// import { Prisma } from '@prisma/client'; // MongoDB only
 
 export class PartnerService {
   private partnerRepository: PartnerRepository;
