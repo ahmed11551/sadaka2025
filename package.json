@@ -14,7 +14,8 @@
     "db:test": "node scripts/test-prisma.js",
     "db:studio": "npx prisma studio",
     "db:mongo:indexes": "tsx server/db/init-indexes.ts",
-    "db:mongo:test": "tsx scripts/test-mongodb.js"
+    "db:mongo:test": "tsx scripts/test-mongodb.js",
+    "db:mongo:setup": "node scripts/auto-setup-mongodb.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
