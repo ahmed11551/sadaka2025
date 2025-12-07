@@ -1,8 +1,8 @@
 // API клиент для работы с API фонда "Инсан"
 // Документация: https://fondinsan.ru/api/v1/programs
 
-const INSAN_API_BASE_URL = 'https://fondinsan.ru/api/v1';
-const INSAN_ACCESS_TOKEN = '0xRs6obpvPOx4lkGLYxepBOcMju';
+const INSAN_API_BASE_URL = import.meta.env.VITE_INSAN_API_URL || 'https://fondinsan.ru/api/v1';
+const INSAN_ACCESS_TOKEN = import.meta.env.VITE_INSAN_ACCESS_TOKEN || '0xRs6obpvPOx4lkGLYxepBOcMju';
 
 export interface InsanProgram {
   id: number;

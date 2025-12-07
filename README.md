@@ -55,9 +55,25 @@ npm run dev
 ## API интеграция
 
 Приложение интегрировано с внешним API:
-- Основной API: `https://bot.e-replika.ru/api/v1`
-- Токен: `test_token_123`
-- Прокси настроен для обхода CORS
+- **Основной API**: `https://bot.e-replika.ru/api/v1`
+- **Фонд Инсан API**: `https://fondinsan.ru/api/v1`
+- **Прокси**: Настроен для обхода CORS в локальной разработке
+
+### Переменные окружения
+
+Создайте файл `.env` на основе `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+**Важно для Vercel**: Добавьте переменные окружения в Vercel Dashboard:
+- `VITE_API_BASE_URL` - URL основного API
+- `VITE_API_TOKEN` - токен для основного API
+- `VITE_INSAN_API_URL` - URL API фонда Инсан (опционально)
+- `VITE_INSAN_ACCESS_TOKEN` - токен для API фонда Инсан (опционально)
+
+⚠️ **Безопасность**: Не коммитьте `.env` файл в Git! Токены должны храниться только в env переменных.
 
 ## Документация
 

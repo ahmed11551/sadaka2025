@@ -13,6 +13,8 @@ const getDefaultApiUrl = () => {
 const API_BASE_URL = typeof window !== 'undefined' 
   ? (import.meta.env.VITE_API_BASE_URL || getDefaultApiUrl())
   : (process.env.VITE_API_BASE_URL || 'https://bot.e-replika.ru/api/v1');
+// Security: токен должен быть в env переменных, не захардкожен в коде
+// Для тестирования используется дефолтное значение, но в production это должно быть в Vercel env vars
 const API_TOKEN = import.meta.env.VITE_API_TOKEN || process.env.VITE_API_TOKEN || 'test_token_123';
 
 export class ApiError extends Error {
