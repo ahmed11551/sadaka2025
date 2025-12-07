@@ -9,7 +9,12 @@ import { FavoriteController } from './controllers/favorite.controller';
 import { CommentController } from './controllers/comment.controller';
 import { UploadController, upload } from './controllers/upload.controller';
 import { ProxyController } from './controllers/proxy.controller';
+import { PaymentController } from './controllers/payment.controller';
+import { AdminController } from './controllers/admin.controller';
+import { ReportController } from './controllers/report.controller';
+import { TelegramController } from './controllers/telegram.controller';
 import { requireAuth, optionalAuth } from './middleware/auth';
+import { requireAdmin } from './middleware/admin';
 import { validate } from './middleware/validate';
 import { asyncHandler } from './middleware/error';
 import multer from 'multer';
@@ -37,6 +42,10 @@ export async function registerRoutes(
   const commentController = new CommentController();
   const uploadController = new UploadController();
   const proxyController = new ProxyController();
+  const paymentController = new PaymentController();
+  const adminController = new AdminController();
+  const reportController = new ReportController();
+  const telegramController = new TelegramController();
 
   // ============= PROXY ROUTES FOR EXTERNAL API (CORS bypass) =============
   // Proxy all requests to external API to avoid CORS issues
@@ -100,6 +109,25 @@ export async function registerRoutes(
       next();
     });
   }, asyncHandler(uploadController.uploadImage));
+
+  // ============= PAYMENT ROUTES =============
+  router.post('/payments/initiate', optionalAuth, asyncHandler(paymentController.initiatePayment));
+  router.get('/payments/:id/status', optionalAuth, asyncHandler(paymentController.getPaymentStatus));
+  router.post('/payments/webhook/yookassa', asyncHandler(paymentController.handleYooKassaWebhook));
+  router.post('/payments/webhook/cloudpayments', asyncHandler(paymentController.handleCloudPaymentsWebhook));
+
+  // ============= ADMIN ROUTES =============
+  router.get('/admin/stats', requireAuth, requireAdmin, asyncHandler(adminController.getStats));
+  router.get('/admin/campaigns/pending', requireAuth, requireAdmin, asyncHandler(adminController.getPendingCampaigns));
+  router.post('/admin/campaigns/:id/approve', requireAuth, requireAdmin, asyncHandler(adminController.approveCampaign));
+  router.post('/admin/campaigns/:id/reject', requireAuth, requireAdmin, asyncHandler(adminController.rejectCampaign));
+
+  // ============= REPORT ROUTES =============
+  router.get('/reports/donations/export', requireAuth, asyncHandler(reportController.exportDonationsReport));
+  router.get('/reports/stats', requireAuth, asyncHandler(reportController.getStats));
+
+  // ============= TELEGRAM ROUTES =============
+  router.post('/telegram/webhook', asyncHandler(telegramController.handleWebhook));
 
   // Mount all routes under /api
   app.use('/api', router);

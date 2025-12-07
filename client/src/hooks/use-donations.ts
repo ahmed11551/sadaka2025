@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { donationApi } from '@/lib/api';
+import { paymentApi } from '@/lib/payment-api';
 import { handleApiError } from '@/lib/error-handler';
+import { toast } from 'sonner';
 
 export function useCreateDonation() {
   const queryClient = useQueryClient();
@@ -11,10 +13,18 @@ export function useCreateDonation() {
       queryClient.invalidateQueries({ queryKey: ['donations'] });
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       queryClient.invalidateQueries({ queryKey: ['donationStats'] });
-      toast.success('Donation successful! Thank you for your generosity.');
     },
     onError: (error: any) => {
       handleApiError(error, 'Ошибка при создании пожертвования');
+    },
+  });
+}
+
+export function useInitiatePayment() {
+  return useMutation({
+    mutationFn: paymentApi.initiatePayment,
+    onError: (error: any) => {
+      handleApiError(error, 'Ошибка при инициализации платежа');
     },
   });
 }

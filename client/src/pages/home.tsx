@@ -124,10 +124,9 @@ export default function HomePage() {
   // Handle subscription period selection
   const handlePeriodSelect = (planId: string, period: string, price: number) => {
     setSelectedPlanPeriod({ planId, period, price });
-    // TODO: Open payment modal or redirect to payment
-    console.log(`Selected: ${planId} - ${period} - ${price} ₽`);
-    // For now, show alert
-    alert(`Выбран тариф: ${planId === 'pro' ? 'Мутахсин (Pro)' : 'Сахиб аль-Вакф (Premium)'} на период ${period}. Цена: ${price} ₽\n\nПереход к оплате будет реализован позже.`);
+    // TODO: Integrate with subscription payment flow
+    // For now, redirect to profile or show subscription modal
+    toast.info(`Выбран тариф: ${planId === 'pro' ? 'Мутахсин (Pro)' : 'Сахиб аль-Вакф (Premium)'} на период ${period}. Цена: ${price} ₽\n\nИнтеграция с оплатой будет добавлена.`);
   };
   const [shuffledFunds, setShuffledFunds] = useState<any[]>([]);
   const [donationModalOpen, setDonationModalOpen] = useState(false);

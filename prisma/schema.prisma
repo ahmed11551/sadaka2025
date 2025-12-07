@@ -20,6 +20,7 @@ model User {
   country       String   @default("ru")
   city          String?
   avatar        String?
+  role          String   @default("user") // "user" | "admin" | "moderator"
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -32,6 +33,7 @@ model User {
   comments           Comment[]
 
   @@map("users")
+  @@index([role])
 }
 
 // ============= CHARITY PARTNERS/FUNDS =============
@@ -69,6 +71,7 @@ model Partner {
   // Relationships
   campaigns   Campaign[]
   donations   Donation[]
+  reports     Report[]
 
   @@map("partners")
 }
@@ -95,6 +98,12 @@ model Campaign {
   urgent          Boolean  @default(false)
   verified        Boolean  @default(false)
   
+  // Moderation
+  moderationStatus String  @default("pending") // "pending" | "approved" | "rejected"
+  moderationNote   String?
+  moderatedAt      DateTime?
+  moderatedBy      String?
+  
   // Metadata
   participantCount Int     @default(0)
   deadline         DateTime?
@@ -119,6 +128,8 @@ model Campaign {
   @@index([status, type])
   @@index([partnerId])
   @@index([authorId])
+  @@index([moderationStatus])
+  @@index([moderatedBy])
 }
 
 // ============= DONATIONS =============
@@ -157,6 +168,9 @@ model Donation {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  // Relationships
+  payment         Payment?
+
   @@map("donations")
   @@index([userId])
   @@index([campaignId])
@@ -192,6 +206,13 @@ model Subscription {
   paymentMethod   String?
   autoRenew       Boolean  @default(true)
   
+  // Recurring payment
+  providerId      String?
+  providerToken   String?
+  lastChargeDate  DateTime?
+  chargeAttempts  Int      @default(0)
+  maxChargeAttempts Int    @default(3)
+  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -201,6 +222,8 @@ model Subscription {
   @@map("subscriptions")
   @@index([userId])
   @@index([status])
+  @@index([providerId])
+  @@index([nextPayment])
 }
 
 // ============= FAVORITES =============
@@ -277,4 +300,45 @@ model UserAchievement {
   @@unique([userId, achievementId])
   @@map("user_achievements")
   @@index([userId])
+}
+
+// ============= PAYMENTS =============
+
+model Payment {
+  id          String   @id @default(uuid())
+  donationId  String   @unique
+  donation    Donation @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  provider    String   // "yookassa" | "cloudpayments"
+  amount      Decimal  @db.Decimal(15, 2)
+  currency    String   @default("RUB")
+  status      String   @default("pending") // "pending" | "succeeded" | "failed" | "cancelled"
+  providerId  String?
+  paymentUrl  String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("payments")
+  @@index([donationId])
+  @@index([status])
+  @@index([providerId])
+}
+
+// ============= REPORTS =============
+
+model Report {
+  id              String   @id @default(uuid())
+  fundId          String?
+  fund            Partner? @relation(fields: [fundId], references: [id], onDelete: SetNull)
+  periodStart     DateTime
+  periodEnd       DateTime
+  fileUrl         String?
+  verified        Boolean  @default(false)
+  totalCollected  Decimal  @default(0) @db.Decimal(15, 2)
+  totalDistributed Decimal @default(0) @db.Decimal(15, 2)
+  createdAt       DateTime @default(now())
+
+  @@map("reports")
+  @@index([fundId])
+  @@index([periodStart])
 }

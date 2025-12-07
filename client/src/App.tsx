@@ -14,6 +14,10 @@ import PartnersPage from "@/pages/partners";
 import ProfilePage from "@/pages/profile";
 import LoginPage from "@/pages/login";
 import RegisterPage from "@/pages/register";
+import PaymentSuccessPage from "@/pages/payment-success";
+import PaymentFailedPage from "@/pages/payment-failed";
+import AdminDashboardPage from "@/pages/admin/index";
+import AdminCampaignsPage from "@/pages/admin/campaigns";
 
 function Router() {
   return (

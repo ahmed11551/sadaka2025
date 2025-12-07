@@ -41,6 +41,7 @@ export class CampaignService {
       ...data,
       slug,
       goal: new Prisma.Decimal(data.goal),
+      moderationStatus: 'pending', // New campaigns require moderation
       author: { connect: { id: userId } },
       ...(data.partnerId && { partner: { connect: { id: data.partnerId } } }),
       ...(data.deadline && { deadline: new Date(data.deadline) }),

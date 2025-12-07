@@ -1,28 +1,93 @@
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Download, FileText, ExternalLink } from "lucide-react";
-
-const data = [
-  { name: 'Янв', amount: 1200 },
-  { name: 'Фев', amount: 2100 },
-  { name: 'Мар', amount: 800 },
-  { name: 'Апр', amount: 3500 },
-  { name: 'Май', amount: 1500 },
-  { name: 'Июн', amount: 2000 },
-];
-
-const transactions = [
-  { id: 1, date: "15.06.2024", type: "Садака", amount: 500, fund: "Фонд Ихсан", status: "completed" },
-  { id: 2, date: "12.06.2024", type: "Подписка", amount: 260, fund: "MubarakWay Pro", status: "completed" },
-  { id: 3, date: "01.06.2024", type: "Сбор", amount: 1000, fund: "Мечеть в Казани", status: "completed" },
-  { id: 4, date: "25.05.2024", type: "Закят", amount: 12500, fund: "Фонд Закят", status: "report_ready" },
-];
+import { Download, FileText, ExternalLink, Loader2 } from "lucide-react";
+import { useUserDonations } from "@/hooks/use-donations";
+import { useMyHistory } from "@/hooks/use-reports";
+import { useSubscriptions } from "@/hooks/use-subscriptions";
+import { LoadingState } from "@/components/loading-state";
+import { EmptyState } from "@/components/empty-state";
+import { toast } from "sonner";
 
 export default function HistoryPage() {
-  const totalDonated = data.reduce((acc, item) => acc + item.amount, 0);
+  const [filterType, setFilterType] = useState<string>("all");
+  const [filterFrom, setFilterFrom] = useState<string>("");
+  const [filterTo, setFilterTo] = useState<string>("");
+
+  // Fetch donations
+  const { data: donationsData, isLoading: donationsLoading } = useUserDonations(1, 100);
+
+  // Fetch history from reports API
+  const { data: historyData, isLoading: historyLoading } = useMyHistory({
+    ...(filterType !== "all" && { type: filterType as any }),
+    ...(filterFrom && { from: filterFrom }),
+    ...(filterTo && { to: filterTo }),
+  });
+
+  // Fetch subscriptions for active count
+  const { data: subscriptionsData } = useSubscriptions();
+  const activeSubscriptions = Array.isArray(subscriptionsData?.data) 
+    ? subscriptionsData.data.filter((s: any) => s.status === 'active').length
+    : 0;
+
+  // Process transactions
+  const transactions = useMemo(() => {
+    const donations = donationsData?.data?.items || donationsData?.data || [];
+    return donations.map((donation: any) => ({
+      id: donation.id,
+      date: new Date(donation.createdAt).toLocaleDateString('ru-RU'),
+      type: donation.type === 'campaign' ? 'Сбор' : donation.type === 'quick' ? 'Садака' : donation.type === 'zakat' ? 'Закят' : donation.type === 'subscription' ? 'Подписка' : donation.type,
+      amount: Number(donation.amount),
+      fund: donation.campaign?.title || donation.partner?.name || 'Общее',
+      status: donation.paymentStatus === 'completed' ? 'completed' : donation.paymentStatus,
+    }));
+  }, [donationsData]);
+
+  // Calculate monthly data for chart
+  const chartData = useMemo(() => {
+    const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+    const monthlyTotals: Record<number, number> = {};
+
+    transactions.forEach((tx) => {
+      if (tx.status === 'completed') {
+        const date = new Date(tx.date.split('.').reverse().join('-'));
+        const month = date.getMonth();
+        monthlyTotals[month] = (monthlyTotals[month] || 0) + tx.amount;
+      }
+    });
+
+    return months.slice(0, 6).map((name, index) => ({
+      name,
+      amount: monthlyTotals[index] || 0,
+    }));
+  }, [transactions]);
+
+  const totalDonated = transactions
+    .filter((tx) => tx.status === 'completed')
+    .reduce((acc, tx) => acc + tx.amount, 0);
+
+  // Export CSV
+  const handleExportCSV = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (filterType !== "all") params.append('type', filterType);
+      if (filterFrom) params.append('from', filterFrom);
+      if (filterTo) params.append('to', filterTo);
+      params.append('format', 'csv');
+
+      const url = `/api/reports/donations/export?${params.toString()}`;
+      window.open(url, '_blank');
+      toast.success('Отчёт экспортирован');
+    } catch (error) {
+      toast.error('Ошибка при экспорте отчёта');
+    }
+  };
 
   return (
     <div className="p-4 space-y-6 pt-6">
@@ -41,7 +106,7 @@ export default function HistoryPage() {
         <Card>
           <CardContent className="p-4 pt-5">
             <p className="text-sm text-muted-foreground">Активные подписки</p>
-            <p className="text-2xl font-bold text-amber-600 mt-1">1</p>
+            <p className="text-2xl font-bold text-amber-600 mt-1">{activeSubscriptions}</p>
           </CardContent>
         </Card>
       </div>

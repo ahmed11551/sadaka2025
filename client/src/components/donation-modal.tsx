@@ -10,10 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { useCreateDonation } from "@/hooks/use-donations";
+import { useCreateDonation, useInitiatePayment } from "@/hooks/use-donations";
 import { Loader2, Heart, CreditCard, Smartphone, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { handleApiError } from "@/lib/error-handler";
+import { useLocation } from "wouter";
 
 const donationSchema = z.object({
   amount: z.number().positive("Сумма должна быть больше 0").min(1, "Минимальная сумма 1 ₽"),
@@ -46,7 +47,9 @@ export function DonationModal({
   defaultAmount,
 }: DonationModalProps) {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(defaultAmount || null);
+  const [, setLocation] = useLocation();
   const createDonation = useCreateDonation();
+  const initiatePayment = useInitiatePayment();
 
   const {
     register,
@@ -88,6 +91,7 @@ export function DonationModal({
       return;
     }
 
+    // Step 1: Create donation record
     createDonation.mutate(
       {
         amount: data.amount,
@@ -101,11 +105,33 @@ export function DonationModal({
         paymentMethod: data.paymentMethod,
       },
       {
-        onSuccess: () => {
-          toast.success("Пожертвование успешно создано! Спасибо за вашу помощь.");
-          reset();
-          setSelectedAmount(null);
-          onOpenChange(false);
+        onSuccess: async (donation) => {
+          // Step 2: Initiate payment if donation created successfully
+          if (donation?.data?.id) {
+            try {
+              const paymentResult = await initiatePayment.mutateAsync({
+                donationId: donation.data.id,
+                amount: data.amount,
+                currency: "RUB",
+                description: campaignTitle 
+                  ? `Пожертвование в кампанию: ${campaignTitle}`
+                  : `Пожертвование ${data.amount} ₽`,
+                cardNumber: undefined, // Will be provided during payment
+                email: undefined, // Can be added from user profile
+              });
+
+              // Step 3: Redirect to payment URL
+              if (paymentResult?.data?.paymentUrl) {
+                window.location.href = paymentResult.data.paymentUrl;
+              } else {
+                toast.error("Не удалось получить ссылку на оплату");
+              }
+            } catch (error) {
+              handleApiError(error, "Ошибка при инициализации платежа");
+            }
+          } else {
+            toast.error("Не удалось создать запись о пожертвовании");
+          }
         },
         onError: (error: any) => {
           handleApiError(error, "Ошибка при создании пожертвования");
