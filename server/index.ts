@@ -157,11 +157,8 @@ app.use((req, res, next) => {
 
     const port = parseInt(process.env.PORT || "5000", 10);
     httpServer.listen(
-      {
-        port,
-        host: "0.0.0.0",
-        reusePort: true,
-      },
+      port,
+      "0.0.0.0",
       () => {
         log(`MubarakWay server running on port ${port}`);
         log(`Database: ${process.env.MONGODB_URI ? 'MongoDB' : process.env.DATABASE_URL ? 'PostgreSQL' : 'Not configured'}`);
