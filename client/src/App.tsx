@@ -19,6 +19,7 @@ function Router() {
   return (
     <ErrorBoundary>
       <Switch>
+        {/* Routes without Layout */}
         <Route path="/login">
           <ErrorBoundary>
             <LoginPage />
@@ -29,70 +30,89 @@ function Router() {
             <RegisterPage />
           </ErrorBoundary>
         </Route>
-        <Route path="/">
+        
+        {/* Routes with Layout - ORDER MATTERS! More specific routes first */}
+        <Route path="/campaigns">
           <Layout>
-            <Switch>
-              <Route path="/">
-                <ErrorBoundary>
-                  <HomePage />
-                </ErrorBoundary>
-              </Route>
-              <Route path="/campaigns">
-                <ErrorBoundary fallback={
-                  <div className="p-4">
-                    <p className="text-center text-muted-foreground">Ошибка загрузки страницы кампаний</p>
-                  </div>
-                }>
-                  <CampaignsPage />
-                </ErrorBoundary>
-              </Route>
-              <Route path="/zakat">
-                <ErrorBoundary fallback={
-                  <div className="p-4">
-                    <p className="text-center text-muted-foreground">Ошибка загрузки страницы закята</p>
-                  </div>
-                }>
-                  <ZakatPage />
-                </ErrorBoundary>
-              </Route>
-              <Route path="/rating">
-                <ErrorBoundary fallback={
-                  <div className="p-4">
-                    <p className="text-center text-muted-foreground">Ошибка загрузки страницы рейтинга</p>
-                  </div>
-                }>
-                  <RatingPage />
-                </ErrorBoundary>
-              </Route>
-              <Route path="/partners">
-                <ErrorBoundary fallback={
-                  <div className="p-4">
-                    <p className="text-center text-muted-foreground">Ошибка загрузки страницы фондов</p>
-                  </div>
-                }>
-                  <PartnersPage />
-                </ErrorBoundary>
-              </Route>
-              <Route path="/partners/:id">
-                <ErrorBoundary fallback={
-                  <div className="p-4">
-                    <p className="text-center text-muted-foreground">Ошибка загрузки страницы фонда</p>
-                  </div>
-                }>
-                  <PartnersPage />
-                </ErrorBoundary>
-              </Route>
-              <Route path="/profile">
-                <ErrorBoundary>
-                  <AuthGuard>
-                    <ProfilePage />
-                  </AuthGuard>
-                </ErrorBoundary>
-              </Route>
-              <Route component={NotFound} />
-            </Switch>
+            <ErrorBoundary fallback={
+              <div className="p-4">
+                <p className="text-center text-muted-foreground">Ошибка загрузки страницы кампаний</p>
+              </div>
+            }>
+              <CampaignsPage />
+            </ErrorBoundary>
           </Layout>
         </Route>
+        
+        <Route path="/zakat">
+          <Layout>
+            <ErrorBoundary fallback={
+              <div className="p-4">
+                <p className="text-center text-muted-foreground">Ошибка загрузки страницы закята</p>
+              </div>
+            }>
+              <ZakatPage />
+            </ErrorBoundary>
+          </Layout>
+        </Route>
+        
+        <Route path="/rating">
+          <Layout>
+            <ErrorBoundary fallback={
+              <div className="p-4">
+                <p className="text-center text-muted-foreground">Ошибка загрузки страницы рейтинга</p>
+              </div>
+            }>
+              <RatingPage />
+            </ErrorBoundary>
+          </Layout>
+        </Route>
+        
+        <Route path="/partners/:id">
+          <Layout>
+            <ErrorBoundary fallback={
+              <div className="p-4">
+                <p className="text-center text-muted-foreground">Ошибка загрузки страницы фонда</p>
+              </div>
+            }>
+              <PartnersPage />
+            </ErrorBoundary>
+          </Layout>
+        </Route>
+        
+        <Route path="/partners">
+          <Layout>
+            <ErrorBoundary fallback={
+              <div className="p-4">
+                <p className="text-center text-muted-foreground">Ошибка загрузки страницы фондов</p>
+              </div>
+            }>
+              <PartnersPage />
+            </ErrorBoundary>
+          </Layout>
+        </Route>
+        
+        <Route path="/profile">
+          <Layout>
+            <ErrorBoundary>
+              <AuthGuard>
+                <ProfilePage />
+              </AuthGuard>
+            </ErrorBoundary>
+          </Layout>
+        </Route>
+        
+        {/* Home route must be last in Switch to avoid catching all routes */}
+        <Route path="/">
+          <Layout>
+            <ErrorBoundary>
+              <HomePage />
+            </ErrorBoundary>
+          </Layout>
+        </Route>
+        
+        {/* 404 - must be last */}
+        <Route component={NotFound} />
       </Switch>
     </ErrorBoundary>
   );
