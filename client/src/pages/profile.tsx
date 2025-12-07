@@ -24,7 +24,6 @@ import { useQuery } from "@tanstack/react-query";
 import { donationApi, favoriteApi } from "@/lib/api";
 import { useFavoriteCampaigns } from "@/hooks/use-campaigns";
 import { useSubscriptions } from "@/hooks/use-subscriptions";
-import { useLocation } from "wouter";
 
 export default function ProfilePage() {
   const [location, setLocation] = useLocation();
