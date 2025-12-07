@@ -49,9 +49,16 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
   render() {
     if (this.state.hasError) {
+      // Always show fallback if provided
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+      
       // In development, show error details
-      // In production, show fallback or minimal error
-      if (process.env.NODE_ENV === 'development' || !this.props.fallback) {
+      // In production, show minimal error message
+      const isDev = import.meta.env.DEV || process.env.NODE_ENV === 'development';
+      
+      if (isDev) {
         return (
           <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 p-4">
             <Card className="w-full max-w-md">
@@ -63,7 +70,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
                 <p className="mt-4 text-sm text-gray-600 mb-4">
                   {this.state.error?.message || 'Произошла ошибка при загрузке страницы'}
                 </p>
-                {process.env.NODE_ENV === 'development' && this.state.error && (
+                {this.state.error && (
                   <details className="mt-4 text-xs text-gray-500 mb-4">
                     <summary className="cursor-pointer mb-2">Детали ошибки</summary>
                     <pre className="bg-gray-100 p-2 rounded overflow-auto max-h-40">
@@ -80,7 +87,11 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
                   <Button onClick={this.handleReset} variant="outline">
                     Попробовать снова
                   </Button>
-                  <Button onClick={() => window.location.reload()}>
+                  <Button onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      window.location.reload();
+                    }
+                  }}>
                     Обновить страницу
                   </Button>
                 </div>
@@ -90,8 +101,17 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
         );
       }
       
-      // Use custom fallback if provided
-      return this.props.fallback || this.props.children;
+      // Production fallback - minimal error message
+      return (
+        <div className="p-4 min-h-[200px] flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-muted-foreground mb-2">Ошибка загрузки страницы</p>
+            <Button onClick={this.handleReset} size="sm" variant="outline">
+              Попробовать снова
+            </Button>
+          </div>
+        </div>
+      );
     }
 
     return this.props.children;
