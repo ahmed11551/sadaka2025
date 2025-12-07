@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { User as UserIcon, Heart, Gift, Check, Sparkles, ChevronLeft, ChevronRight, Layers, ChevronDown, ChevronUp, MessageCircle, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
