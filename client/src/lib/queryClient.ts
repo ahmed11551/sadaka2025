@@ -35,8 +35,9 @@ if (typeof window !== 'undefined') {
     // Clear query cache
     queryClient.clear();
     // Redirect to login if not already there
-    if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
-      window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+    const currentPath = window.location.pathname;
+    if (!currentPath.includes('/login') && !currentPath.includes('/register')) {
+      window.location.href = '/login?redirect=' + encodeURIComponent(currentPath);
     }
   });
 }

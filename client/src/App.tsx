@@ -38,27 +38,47 @@ function Router() {
                 </ErrorBoundary>
               </Route>
               <Route path="/campaigns">
-                <ErrorBoundary>
+                <ErrorBoundary fallback={
+                  <div className="p-4">
+                    <p className="text-center text-muted-foreground">Ошибка загрузки страницы кампаний</p>
+                  </div>
+                }>
                   <CampaignsPage />
                 </ErrorBoundary>
               </Route>
               <Route path="/zakat">
-                <ErrorBoundary>
+                <ErrorBoundary fallback={
+                  <div className="p-4">
+                    <p className="text-center text-muted-foreground">Ошибка загрузки страницы закята</p>
+                  </div>
+                }>
                   <ZakatPage />
                 </ErrorBoundary>
               </Route>
               <Route path="/rating">
-                <ErrorBoundary>
+                <ErrorBoundary fallback={
+                  <div className="p-4">
+                    <p className="text-center text-muted-foreground">Ошибка загрузки страницы рейтинга</p>
+                  </div>
+                }>
                   <RatingPage />
                 </ErrorBoundary>
               </Route>
               <Route path="/partners">
-                <ErrorBoundary>
+                <ErrorBoundary fallback={
+                  <div className="p-4">
+                    <p className="text-center text-muted-foreground">Ошибка загрузки страницы фондов</p>
+                  </div>
+                }>
                   <PartnersPage />
                 </ErrorBoundary>
               </Route>
               <Route path="/partners/:id">
-                <ErrorBoundary>
+                <ErrorBoundary fallback={
+                  <div className="p-4">
+                    <p className="text-center text-muted-foreground">Ошибка загрузки страницы фонда</p>
+                  </div>
+                }>
                   <PartnersPage />
                 </ErrorBoundary>
               </Route>

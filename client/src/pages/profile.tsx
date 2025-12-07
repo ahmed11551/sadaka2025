@@ -63,7 +63,9 @@ export default function ProfilePage() {
 
   useEffect(() => {
     // Parse query params manually since wouter useLocation doesn't give them directly
-    const params = new URLSearchParams(window.location.search);
+    const params = typeof window !== 'undefined' 
+      ? new URLSearchParams(window.location.search)
+      : new URLSearchParams();
     const tab = params.get("tab");
     if (tab) {
       setActiveTab(tab);

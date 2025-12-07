@@ -40,7 +40,10 @@ function getTimeAgo(date: Date): string {
 export default function CampaignsPage() {
   const [location, setLocation] = useLocation();
   // Parse query params manually since wouter useLocation doesn't give them directly
-  const params = new URLSearchParams(window.location.search);
+  // Safely access window.location
+  const params = typeof window !== 'undefined' 
+    ? new URLSearchParams(window.location.search)
+    : new URLSearchParams();
   const initialTab = params.get("tab") || "funds";
   
   const [activeTab, setActiveTab] = useState(initialTab);
