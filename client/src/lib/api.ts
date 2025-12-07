@@ -48,7 +48,7 @@ function getErrorMessage(status: number, defaultMessage?: string): string {
   return ERROR_MESSAGES[status] || defaultMessage || 'Произошла ошибка. Попробуйте позже.';
 }
 
-async function fetchApi<T>(
+export async function fetchApi<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
