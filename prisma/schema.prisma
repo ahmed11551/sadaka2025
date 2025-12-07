@@ -1,0 +1,280 @@
+// MubarakWay - Islamic Charity Platform Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============= USER MANAGEMENT =============
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  username      String   @unique
+  password      String
+  fullName      String?
+  phone         String?
+  country       String   @default("ru")
+  city          String?
+  avatar        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relationships
+  donations          Donation[]
+  campaigns          Campaign[]
+  favorites          Favorite[]
+  subscriptions      Subscription[]
+  achievements       UserAchievement[]
+  comments           Comment[]
+
+  @@map("users")
+}
+
+// ============= CHARITY PARTNERS/FUNDS =============
+
+model Partner {
+  id          String   @id @default(uuid())
+  name        String
+  nameAr      String?
+  slug        String   @unique
+  type        String   // "General", "Zakat", "Waqf"
+  description String
+  logo        String?
+  verified    Boolean  @default(false)
+  country     String
+  city        String?
+  location    String
+  
+  // Contact Info
+  website     String?
+  email       String?
+  phone       String?
+  
+  // Statistics
+  totalCollected Decimal @default(0) @db.Decimal(15, 2)
+  totalDonors    Int     @default(0)
+  totalHelped    Int     @default(0)
+  projectCount   Int     @default(0)
+  foundedYear    Int?
+  
+  categories  String[]  // ["Сироты", "Образование", etc]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  campaigns   Campaign[]
+  donations   Donation[]
+
+  @@map("partners")
+}
+
+// ============= CAMPAIGNS =============
+
+model Campaign {
+  id              String   @id @default(uuid())
+  title           String
+  slug            String   @unique
+  description     String
+  fullDescription String?
+  category        String
+  image           String?
+  
+  // Financial
+  goal            Decimal  @db.Decimal(15, 2)
+  collected       Decimal  @default(0) @db.Decimal(15, 2)
+  currency        String   @default("RUB")
+  
+  // Type & Status
+  type            String   // "fund" or "private"
+  status          String   @default("active") // "active", "completed", "cancelled"
+  urgent          Boolean  @default(false)
+  verified        Boolean  @default(false)
+  
+  // Metadata
+  participantCount Int     @default(0)
+  deadline         DateTime?
+  completedAt      DateTime?
+  
+  // Relations
+  partnerId       String?
+  partner         Partner? @relation(fields: [partnerId], references: [id])
+  
+  authorId        String?
+  author          User?    @relation(fields: [authorId], references: [id])
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships
+  donations       Donation[]
+  favorites       Favorite[]
+  comments        Comment[]
+
+  @@map("campaigns")
+  @@index([status, type])
+  @@index([partnerId])
+  @@index([authorId])
+}
+
+// ============= DONATIONS =============
+
+model Donation {
+  id              String   @id @default(uuid())
+  amount          Decimal  @db.Decimal(15, 2)
+  currency        String   @default("RUB")
+  
+  // Type & Category
+  type            String   // "campaign", "quick", "subscription", "mubarakway"
+  category        String?  // "orphans", "mosque", "zakat", etc.
+  
+  // Payment
+  paymentStatus   String   @default("pending") // "pending", "completed", "failed"
+  paymentMethod   String?
+  transactionId   String?  @unique
+  
+  // Relations
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id])
+  
+  campaignId      String?
+  campaign        Campaign? @relation(fields: [campaignId], references: [id])
+  
+  partnerId       String?
+  partner         Partner? @relation(fields: [partnerId], references: [id])
+  
+  subscriptionId  String?
+  subscription    Subscription? @relation(fields: [subscriptionId], references: [id])
+  
+  // Metadata
+  anonymous       Boolean  @default(false)
+  comment         String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("donations")
+  @@index([userId])
+  @@index([campaignId])
+  @@index([partnerId])
+  @@index([paymentStatus])
+}
+
+// ============= SUBSCRIPTIONS (Sadaqa-Jariya) =============
+
+model Subscription {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  
+  // Plan Details
+  planType        String   // "muslim", "pro", "premium"
+  planName        String   // "Муслим", "Мутахсин", "Сахиб аль-Вакф"
+  billingCycle    String   // "monthly", "6months", "12months", "3years"
+  
+  // Pricing
+  amount          Decimal  @db.Decimal(10, 2)
+  charityPercent  Int      // 0, 3, 7, 10
+  charityAmount   Decimal  @db.Decimal(10, 2)
+  
+  // Status
+  status          String   @default("active") // "active", "cancelled", "expired"
+  startDate       DateTime @default(now())
+  endDate         DateTime
+  lastPayment     DateTime?
+  nextPayment     DateTime?
+  
+  // Payment
+  paymentMethod   String?
+  autoRenew       Boolean  @default(true)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships
+  donations       Donation[]
+
+  @@map("subscriptions")
+  @@index([userId])
+  @@index([status])
+}
+
+// ============= FAVORITES =============
+
+model Favorite {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, campaignId])
+  @@map("favorites")
+  @@index([userId])
+}
+
+// ============= COMMENTS =============
+
+model Comment {
+  id         String   @id @default(uuid())
+  content    String
+  
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("comments")
+  @@index([campaignId])
+  @@index([userId])
+}
+
+// ============= ACHIEVEMENTS =============
+
+model Achievement {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  name        String
+  description String
+  icon        String?
+  category    String   // "donations", "campaigns", "community"
+  
+  // Unlock Requirements
+  requirement String   // JSON string with criteria
+  points      Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+
+  // Relationships
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  
+  unlockedAt    DateTime @default(now())
+  progress      Int      @default(0)
+  completed     Boolean  @default(false)
+
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+  @@index([userId])
+}
