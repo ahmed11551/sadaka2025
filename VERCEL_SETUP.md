@@ -16,7 +16,10 @@ VITE_API_BASE_URL=https://bot.e-replika.ru/api/v1
 VITE_API_TOKEN=test_token_123
 VITE_INSAN_API_URL=https://fondinsan.ru/api/v1
 VITE_INSAN_ACCESS_TOKEN=0xRs6obpvPOx4lkGLYxepBOcMju
+TELEGRAM_BOT_TOKEN=ваш-токен-бота-от-BotFather
 ```
+
+**Примечание**: Если у вас уже есть токен бота (см. `БОТ_ТОКЕН.md`), используйте его вместо `ваш-токен-бота-от-BotFather`.
 
 ### Шаг 2: Пересобрать проект
 
