@@ -38,8 +38,11 @@ let connected = false;
 try {
   console.log('🔌 Попытка подключения к MongoDB...');
   client = new MongoClient(uri, {
-    serverSelectionTimeoutMS: 10000,
-    connectTimeoutMS: 10000,
+    serverSelectionTimeoutMS: 15000,
+    connectTimeoutMS: 15000,
+    tls: true,
+    tlsAllowInvalidCertificates: false,
+    retryWrites: true,
   });
   
   await client.connect();
