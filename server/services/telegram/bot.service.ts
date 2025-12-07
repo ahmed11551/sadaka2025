@@ -1,19 +1,31 @@
 // Telegram Bot Service - Handle inline commands and callback data
 // Documentation: https://core.telegram.org/bots/api
 
-import { Telegram } from 'telegraf';
+// Optional dependency - telegraf package
+let Telegram: any = null;
+try {
+  const telegraf = await import('telegraf');
+  Telegram = telegraf.Telegram;
+} catch (e) {
+  console.warn('[TelegramBot] telegraf package not installed. Telegram features will be disabled.');
+}
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const SITE_URL = process.env.SITE_URL || 'https://sadaka2025.vercel.app';
 
 export class TelegramBotService {
-  private bot: Telegram | null = null;
+  private bot: any = null;
 
   constructor() {
-    if (TELEGRAM_BOT_TOKEN) {
+    if (TELEGRAM_BOT_TOKEN && Telegram) {
       this.bot = new Telegram(TELEGRAM_BOT_TOKEN);
     } else {
-      console.warn('[TelegramBot] TELEGRAM_BOT_TOKEN not configured');
+      if (!TELEGRAM_BOT_TOKEN) {
+        console.warn('[TelegramBot] TELEGRAM_BOT_TOKEN not configured');
+      }
+      if (!Telegram) {
+        console.warn('[TelegramBot] telegraf package not installed');
+      }
     }
   }
 
