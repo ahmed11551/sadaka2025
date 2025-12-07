@@ -32,12 +32,12 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:-change-this-in-production}
       API_BASE_URL: ${API_BASE_URL:-https://bot.e-replika.ru/api/v1}
       API_TOKEN: ${API_TOKEN:-test_token_123}
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:5000/api}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:5002/api}
       VITE_API_TOKEN: ${VITE_API_TOKEN:-test_token_123}
       VITE_INSAN_API_URL: ${VITE_INSAN_API_URL:-https://fondinsan.ru/api/v1}
       VITE_INSAN_ACCESS_TOKEN: ${VITE_INSAN_ACCESS_TOKEN:-}
     ports:
-      - "5001:5000"
+      - "5002:5000"
     volumes:
       - ./uploads:/app/uploads
     depends_on:
