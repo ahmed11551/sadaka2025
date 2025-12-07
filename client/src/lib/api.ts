@@ -1,8 +1,8 @@
 // API Configuration
 const API_BASE_URL = typeof window !== 'undefined' 
-  ? '/api/external'
-  : 'https://bot.e-replika.ru/api/v1';
-const API_TOKEN = 'test_token_123';
+  ? (import.meta.env.VITE_API_BASE_URL || '/api/external')
+  : (process.env.VITE_API_BASE_URL || 'https://bot.e-replika.ru/api/v1');
+const API_TOKEN = import.meta.env.VITE_API_TOKEN || process.env.VITE_API_TOKEN || 'test_token_123';
 
 export class ApiError extends Error {
   constructor(
