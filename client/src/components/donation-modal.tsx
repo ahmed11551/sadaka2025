@@ -120,8 +120,9 @@ export function DonationModal({
                 email: undefined, // Can be added from user profile
               });
 
-              // Step 3: Redirect to payment URL
+              // Step 3: Redirect to payment URL (external redirect is necessary for payment gateway)
               if (paymentResult?.data?.paymentUrl) {
+                // External redirect to payment gateway is required - can't use SPA navigation
                 window.location.href = paymentResult.data.paymentUrl;
               } else {
                 toast.error("Не удалось получить ссылку на оплату");

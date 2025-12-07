@@ -112,6 +112,7 @@ const subscriptionPlans = [
 ];
 
 export default function HomePage() {
+  const [, setLocation] = useLocation();
   const [country, setCountry] = useState("ru");
   const [donationCategory, setDonationCategory] = useState("");
   const [urgentIndex, setUrgentIndex] = useState(0);
@@ -481,7 +482,7 @@ export default function HomePage() {
                       description="Срочные сборы скоро появятся. Следите за обновлениями!"
                       action={{
                         label: "Посмотреть все кампании",
-                        onClick: () => window.location.href = "/campaigns"
+                        onClick: () => setLocation("/campaigns")
                       }}
                     />
                   </CardContent>
@@ -558,7 +559,7 @@ export default function HomePage() {
                       description="Активные кампании скоро появятся. Вы можете создать свою кампанию!"
                       action={{
                         label: "Создать кампанию",
-                        onClick: () => window.location.href = "/campaigns"
+                        onClick: () => setLocation("/campaigns")
                       }}
                     />
                   </CardContent>

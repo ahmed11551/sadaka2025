@@ -35,9 +35,13 @@ if (typeof window !== 'undefined') {
     // Clear query cache
     queryClient.clear();
     // Redirect to login if not already there
-    const currentPath = window.location.pathname;
-    if (!currentPath.includes('/login') && !currentPath.includes('/register')) {
-      window.location.href = '/login?redirect=' + encodeURIComponent(currentPath);
+    // Note: This is called globally, so we use window.location for redirect
+    // Navigation hooks can't be used here as this is outside React component tree
+    if (typeof window !== 'undefined') {
+      const currentPath = window.location.pathname;
+      if (!currentPath.includes('/login') && !currentPath.includes('/register')) {
+        window.location.href = '/login?redirect=' + encodeURIComponent(currentPath);
+      }
     }
   });
 }

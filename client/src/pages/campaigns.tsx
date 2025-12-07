@@ -597,7 +597,10 @@ export default function CampaignsPage() {
               description="Кампании фондов скоро появятся. Следите за обновлениями!"
               action={{
                 label: "Обновить",
-                onClick: () => window.location.reload()
+                onClick: () => {
+                  // Refresh campaigns data without full page reload
+                  window.location.reload();
+                }
               }}
             />
           )}
