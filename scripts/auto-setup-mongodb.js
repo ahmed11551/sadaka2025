@@ -50,7 +50,15 @@ try {
   console.log('✅ Подключение успешно!\n');
   
   // Получить базу данных
-  const dbName = uri.match(/\/([^?]+)/)?.[1] || 'sadaka2025';
+  // Имя БД может быть в URI после последнего / или в параметрах
+  let dbName = 'sadaka2025'; // значение по умолчанию
+  const dbMatch = uri.match(/mongodb\+srv:\/\/[^/]+\/([^?]+)/);
+  if (dbMatch && dbMatch[1]) {
+    dbName = dbMatch[1];
+  } else {
+    // Если имя БД не указано в URI, используем значение по умолчанию
+    dbName = 'sadaka2025';
+  }
   const db = client.db(dbName);
   console.log(`📊 База данных: ${dbName}`);
   
@@ -84,89 +92,20 @@ try {
   
   console.log('\n🎉 Все проверки пройдены! MongoDB готов к использованию.\n');
   
-  // Создание индексов
+  // Создание индексов через init-indexes.ts
   console.log('📊 Создание индексов...\n');
   
-  const repos = await import('../server/repositories/user.repository.mongo.js').then(m => m.UserRepositoryMongo);
-  const UserRepo = repos;
-  const userRepo = new UserRepo();
-  await userRepo.createIndexes();
-  console.log('   ✅ Индексы users созданы');
-  
-  // Импортируем и создаём индексы для остальных коллекций
   try {
-    const { CampaignRepositoryMongo } = await import('../server/repositories/campaign.repository.mongo.js');
-    const campaignRepo = new CampaignRepositoryMongo();
-    await campaignRepo.createIndexes();
-    console.log('   ✅ Индексы campaigns созданы');
+    // Используем существующий скрипт init-indexes.ts
+    const { createIndexes } = await import('../server/db/init-indexes.js');
+    await createIndexes();
+    console.log('   ✅ Все индексы созданы успешно!');
   } catch (e) {
-    console.log('   ⚠️ Индексы campaigns пропущены');
+    console.log('   ⚠️ Ошибка при создании индексов через init-indexes.ts');
+    console.log(`   ${e.message}`);
+    console.log('   💡 Попробуйте запустить: npm run db:mongo:indexes');
   }
   
-  try {
-    const { DonationRepositoryMongo } = await import('../server/repositories/donation.repository.mongo.js');
-    const donationRepo = new DonationRepositoryMongo();
-    await donationRepo.createIndexes();
-    console.log('   ✅ Индексы donations созданы');
-  } catch (e) {
-    console.log('   ⚠️ Индексы donations пропущены');
-  }
-  
-  try {
-    const { PartnerRepositoryMongo } = await import('../server/repositories/partner.repository.mongo.js');
-    const partnerRepo = new PartnerRepositoryMongo();
-    await partnerRepo.createIndexes();
-    console.log('   ✅ Индексы partners созданы');
-  } catch (e) {
-    console.log('   ⚠️ Индексы partners пропущены');
-  }
-  
-  try {
-    const { PaymentRepositoryMongo } = await import('../server/repositories/payment.repository.mongo.js');
-    const paymentRepo = new PaymentRepositoryMongo();
-    await paymentRepo.createIndexes();
-    console.log('   ✅ Индексы payments созданы');
-  } catch (e) {
-    console.log('   ⚠️ Индексы payments пропущены');
-  }
-  
-  try {
-    const { SubscriptionRepositoryMongo } = await import('../server/repositories/subscription.repository.mongo.js');
-    const subscriptionRepo = new SubscriptionRepositoryMongo();
-    await subscriptionRepo.createIndexes();
-    console.log('   ✅ Индексы subscriptions созданы');
-  } catch (e) {
-    console.log('   ⚠️ Индексы subscriptions пропущены');
-  }
-  
-  try {
-    const { ZakatRepositoryMongo } = await import('../server/repositories/zakat.repository.mongo.js');
-    const zakatRepo = new ZakatRepositoryMongo();
-    await zakatRepo.createIndexes();
-    console.log('   ✅ Индексы zakat_calculations созданы');
-  } catch (e) {
-    console.log('   ⚠️ Индексы zakat_calculations пропущены');
-  }
-  
-  try {
-    const { FavoriteRepositoryMongo } = await import('../server/repositories/favorite.repository.mongo.js');
-    const favoriteRepo = new FavoriteRepositoryMongo();
-    await favoriteRepo.createIndexes();
-    console.log('   ✅ Индексы favorites созданы');
-  } catch (e) {
-    console.log('   ⚠️ Индексы favorites пропущены');
-  }
-  
-  try {
-    const { CommentRepositoryMongo } = await import('../server/repositories/comment.repository.mongo.js');
-    const commentRepo = new CommentRepositoryMongo();
-    await commentRepo.createIndexes();
-    console.log('   ✅ Индексы comments созданы');
-  } catch (e) {
-    console.log('   ⚠️ Индексы comments пропущены');
-  }
-  
-  console.log('\n✅ Все индексы созданы успешно!');
   console.log('\n🚀 MongoDB полностью настроен и готов к использованию!\n');
   
   process.exit(0);
