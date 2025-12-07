@@ -13,7 +13,7 @@ docker-compose up mongodb -d
 MONGODB_URI="mongodb://sadakapass:sadakapass_password@localhost:27017/sadaka2025?authSource=admin" npm run dev
 ```
 
-Приложение будет доступно на `http://localhost:5000`
+Приложение будет доступно на `http://localhost:5001`
 
 ---
 
@@ -46,6 +46,7 @@ MONGODB_URI=mongodb://sadakapass:sadakapass_password@localhost:27017/sadaka2025?
 # Server
 PORT=5000
 NODE_ENV=development
+# Примечание: Внешний порт будет 5001 (см. docker-compose.yml)
 
 # Session
 SESSION_SECRET=your-secret-key-here-change-in-production
@@ -55,7 +56,7 @@ API_BASE_URL=https://bot.e-replika.ru/api/v1
 API_TOKEN=test_token_123
 
 # Frontend
-VITE_API_BASE_URL=http://localhost:5000/api
+VITE_API_BASE_URL=http://localhost:5001/api
 VITE_API_TOKEN=test_token_123
 VITE_INSAN_API_URL=https://fondinsan.ru/api/v1
 VITE_INSAN_ACCESS_TOKEN=your-token-here
@@ -158,12 +159,12 @@ MONGODB_URI=mongodb://sadakapass:sadakapass_password@localhost:27018/sadaka2025?
 
 2. **Приложение**: 
    ```bash
-   curl http://localhost:5000
+   curl http://localhost:5001
    ```
 
 3. **API**: 
    ```bash
-   curl http://localhost:5000/api/health
+   curl http://localhost:5001/api/health
    ```
 
 ---
