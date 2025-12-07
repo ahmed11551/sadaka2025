@@ -96,32 +96,81 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Register routes
-  await registerRoutes(httpServer, app);
+  try {
+    // Подключение к MongoDB (если MONGODB_URI установлен)
+    if (process.env.MONGODB_URI) {
+      try {
+        const { connectToMongoDB } = await import("./db/mongodb.js");
+        log("🔌 Подключение к MongoDB...");
+        await connectToMongoDB();
+        log("✅ MongoDB подключена");
+        
+        // Создание индексов (только при первом запуске, можно закомментировать после)
+        if (process.env.CREATE_INDEXES === 'true') {
+          log("📊 Создание индексов MongoDB...");
+          const { UserRepositoryMongo } = await import("./repositories/user.repository.mongo.js");
+          const { CampaignRepositoryMongo } = await import("./repositories/campaign.repository.mongo.js");
+          const { DonationRepositoryMongo } = await import("./repositories/donation.repository.mongo.js");
+          const { PartnerRepositoryMongo } = await import("./repositories/partner.repository.mongo.js");
+          const { PaymentRepositoryMongo } = await import("./repositories/payment.repository.mongo.js");
+          const { SubscriptionRepositoryMongo } = await import("./repositories/subscription.repository.mongo.js");
+          const { ZakatRepositoryMongo } = await import("./repositories/zakat.repository.mongo.js");
+          const { FavoriteRepositoryMongo } = await import("./repositories/favorite.repository.mongo.js");
+          const { CommentRepositoryMongo } = await import("./repositories/comment.repository.mongo.js");
+          
+          const repos = [
+            new UserRepositoryMongo(),
+            new CampaignRepositoryMongo(),
+            new DonationRepositoryMongo(),
+            new PartnerRepositoryMongo(),
+            new PaymentRepositoryMongo(),
+            new SubscriptionRepositoryMongo(),
+            new ZakatRepositoryMongo(),
+            new FavoriteRepositoryMongo(),
+            new CommentRepositoryMongo(),
+          ];
+          
+          for (const repo of repos) {
+            await repo.createIndexes();
+          }
+          log("✅ Индексы MongoDB созданы");
+        }
+      } catch (error) {
+        log(`⚠️ Предупреждение: Не удалось подключиться к MongoDB: ${error}`);
+        log("Продолжаем работу без MongoDB...");
+      }
+    }
 
-  // Setup Vite or static files (before error handler)
-  if (process.env.NODE_ENV === "production") {
-    serveStatic(app);
-  } else {
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
+    // Register routes
+    await registerRoutes(httpServer, app);
+
+    // Setup Vite or static files (before error handler)
+    if (process.env.NODE_ENV === "production") {
+      serveStatic(app);
+    } else {
+      const { setupVite } = await import("./vite");
+      await setupVite(httpServer, app);
+    }
+
+    // Error handling middleware - must be last
+    app.use(errorHandler);
+
+    const port = parseInt(process.env.PORT || "5000", 10);
+    httpServer.listen(
+      {
+        port,
+        host: "0.0.0.0",
+        reusePort: true,
+      },
+      () => {
+        log(`MubarakWay server running on port ${port}`);
+        log(`Database: ${process.env.MONGODB_URI ? 'MongoDB' : process.env.DATABASE_URL ? 'PostgreSQL' : 'Not configured'}`);
+        log(`Session: Configured`);
+        log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      },
+    );
+  } catch (error) {
+    log(`❌ Ошибка при запуске сервера: ${error}`);
+    process.exit(1);
   }
-
-  // Error handling middleware - must be last
-  app.use(errorHandler);
-
-  const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`MubarakWay server running on port ${port}`);
-      log(`Database: Connected`);
-      log(`Session: Configured`);
-      log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    },
-  );
 })();
