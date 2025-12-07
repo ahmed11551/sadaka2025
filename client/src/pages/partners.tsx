@@ -95,7 +95,8 @@ export default function PartnersPage() {
   const isInsanPartner = selectedFund?.slug === 'insan' || partnerDetails?.data?.slug === 'insan';
   
   // Fetch Insan programs if partner is Insan
-  const { data: insanPrograms = [], isLoading: insanProgramsLoading } = useInsanPrograms();
+  const { data: insanProgramsData, isLoading: insanProgramsLoading } = useInsanPrograms();
+  const insanPrograms = Array.isArray(insanProgramsData) ? insanProgramsData : [];
 
   // Process partners data
   const partners = useMemo(() => {
@@ -173,13 +174,13 @@ export default function PartnersPage() {
             </div>
             <div className="flex-1 pt-1">
               <h2 className="font-bold text-xl flex items-center gap-2">
-                {selectedFund.name || 'Без названия'}
-                {selectedFund.verified && <CheckCircle2 className="w-5 h-5 text-emerald-600 fill-emerald-50" />}
+                {selectedFund?.name || 'Без названия'}
+                {selectedFund?.verified && <CheckCircle2 className="w-5 h-5 text-emerald-600 fill-emerald-50" />}
               </h2>
-              {selectedFund.nameAr && (
+              {selectedFund?.nameAr && (
                 <p className="text-sm text-muted-foreground font-arabic mt-1">{selectedFund.nameAr}</p>
               )}
-              {selectedFund.type && (
+              {selectedFund?.type && (
                 <Badge variant="secondary" className="mt-2 text-xs bg-amber-100 text-amber-800 hover:bg-amber-200 border-none">
                   {selectedFund.type}
                 </Badge>
@@ -187,7 +188,7 @@ export default function PartnersPage() {
             </div>
           </div>
 
-          {selectedFund.description && (
+          {selectedFund?.description && (
             <p className="text-sm text-muted-foreground leading-relaxed">
               {selectedFund.description}
             </p>
@@ -307,10 +308,12 @@ export default function PartnersPage() {
             {activeTab === "about" && (
               <div className="space-y-6">
                 <div className="space-y-4">
-                  <h3 className="font-bold text-lg">О {selectedFund.name}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {selectedFund.description}
-                  </p>
+                  <h3 className="font-bold text-lg">О {selectedFund?.name || 'фонде'}</h3>
+                  {selectedFund?.description && (
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {selectedFund.description}
+                    </p>
+                  )}
                 </div>
 
                 {/* Impact Stats & Donors */}
