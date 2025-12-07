@@ -31,6 +31,7 @@ model User {
   subscriptions      Subscription[]
   achievements       UserAchievement[]
   comments           Comment[]
+  zakatCalculations  ZakatCalc[]
 
   @@map("users")
   @@index([role])
@@ -341,4 +342,20 @@ model Report {
   @@map("reports")
   @@index([fundId])
   @@index([periodStart])
+}
+
+// ============= ZAKAT CALCULATIONS =============
+
+model ZakatCalc {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payloadJson String   // JSON string with calculation inputs
+  zakatDue    Decimal  @db.Decimal(15, 2)
+  aboveNisab  Boolean
+  createdAt   DateTime @default(now())
+
+  @@map("zakat_calculations")
+  @@index([userId])
+  @@index([createdAt])
 }

@@ -226,6 +226,32 @@ export class SubscriptionService {
   }
 
   /**
+   * Get user subscriptions
+   */
+  async getUserSubscriptions(userId: string) {
+    return prisma.subscription.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * Update subscription (pause/resume/cancel)
+   */
+  async updateSubscription(userId: string, subscriptionId: string, action: 'pause' | 'resume' | 'cancel') {
+    switch (action) {
+      case 'pause':
+        return this.pauseSubscription(subscriptionId, userId);
+      case 'resume':
+        return this.resumeSubscription(subscriptionId, userId);
+      case 'cancel':
+        return this.cancelSubscription(subscriptionId, userId);
+      default:
+        throw new Error(`Unknown action: ${action}`);
+    }
+  }
+
+  /**
    * Calculate end date based on billing cycle
    */
   private calculateEndDate(startDate: Date, billingCycle: string): Date {

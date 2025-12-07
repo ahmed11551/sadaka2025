@@ -13,6 +13,8 @@ import { PaymentController } from './controllers/payment.controller';
 import { AdminController } from './controllers/admin.controller';
 import { ReportController } from './controllers/report.controller';
 import { TelegramController } from './controllers/telegram.controller';
+import { SubscriptionController } from './controllers/subscription.controller';
+import { ZakatController } from './controllers/zakat.controller';
 import { requireAuth, optionalAuth } from './middleware/auth';
 import { requireAdmin } from './middleware/admin';
 import { validate } from './middleware/validate';
@@ -46,6 +48,8 @@ export async function registerRoutes(
   const adminController = new AdminController();
   const reportController = new ReportController();
   const telegramController = new TelegramController();
+  const subscriptionController = new SubscriptionController();
+  const zakatController = new ZakatController();
 
   // ============= PROXY ROUTES FOR EXTERNAL API (CORS bypass) =============
   // Proxy all requests to external API to avoid CORS issues
@@ -76,6 +80,16 @@ export async function registerRoutes(
   router.get('/donations/my', requireAuth, asyncHandler(donationController.getUserDonations));
   router.get('/donations/campaign/:campaignId', optionalAuth, asyncHandler(donationController.getCampaignDonations));
   router.get('/donations/stats', requireAuth, asyncHandler(donationController.getUserStats));
+
+  // ============= SUBSCRIPTION ROUTES =============
+  router.get('/subscriptions/me', requireAuth, asyncHandler(subscriptionController.getMySubscriptions));
+  router.post('/subscriptions/checkout', requireAuth, asyncHandler(subscriptionController.checkout));
+  router.patch('/subscriptions/:id', requireAuth, asyncHandler(subscriptionController.updateSubscription));
+
+  // ============= ZAKAT ROUTES =============
+  router.post('/zakat/calc', requireAuth, asyncHandler(zakatController.calculate));
+  router.post('/zakat/pay', requireAuth, asyncHandler(zakatController.pay));
+  router.get('/zakat/history', requireAuth, asyncHandler(zakatController.getHistory));
 
   // ============= PARTNER ROUTES =============
   router.get('/partners', asyncHandler(partnerController.getPartners));
