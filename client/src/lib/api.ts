@@ -74,6 +74,37 @@ async function fetchApi<T>(
 
   // Handle non-OK responses
   if (!response.ok) {
+    // For 404, return empty data instead of throwing error
+    // This allows components to show empty states gracefully
+    if (response.status === 404) {
+      const contentType = response.headers.get('content-type');
+      if (contentType?.includes('application/json')) {
+        try {
+          await response.json();
+        } catch {
+          // Ignore JSON parse errors
+        }
+      }
+      
+      // Return empty structure based on endpoint pattern
+      if (endpoint.includes('/campaigns')) {
+        return { data: { items: [], total: 0 }, success: true } as T;
+      }
+      if (endpoint.includes('/partners')) {
+        return { data: { items: [], total: 0 }, success: true } as T;
+      }
+      if (endpoint.includes('/auth/me') || endpoint.includes('/auth/profile')) {
+        return null as T;
+      }
+      if (endpoint.includes('/subscriptions')) {
+        return { data: [], success: true } as T;
+      }
+      if (endpoint.includes('/history') || endpoint.includes('/reports')) {
+        return { data: { items: [], total: 0 }, success: true } as T;
+      }
+      return { data: null, success: true } as T;
+    }
+    
     let errorData: any;
     const contentType = response.headers.get('content-type');
     
