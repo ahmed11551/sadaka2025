@@ -1,32 +1,52 @@
 // Telegram Bot Service - Handle inline commands and callback data
 // Documentation: https://core.telegram.org/bots/api
 
-// Optional dependency - telegraf package
-let Telegram: any = null;
-try {
-  const telegraf = await import('telegraf');
-  Telegram = telegraf.Telegram;
-} catch (e) {
-  console.warn('[TelegramBot] telegraf package not installed. Telegram features will be disabled.');
-}
-
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const SITE_URL = process.env.SITE_URL || 'https://sadaka2025.vercel.app';
 
+// Lazy load telegraf to avoid errors if package is not installed
+let TelegramClass: any = null;
+let telegrafLoadAttempted = false;
+
+async function loadTelegraf() {
+  if (TelegramClass) return TelegramClass;
+  if (telegrafLoadAttempted) return null;
+  telegrafLoadAttempted = true;
+  
+  try {
+    const telegraf = await import('telegraf');
+    TelegramClass = telegraf.Telegram;
+    return TelegramClass;
+  } catch (e) {
+    console.warn('[TelegramBot] telegraf package not installed. Install with: npm install telegraf');
+    return null;
+  }
+}
+
 export class TelegramBotService {
   private bot: any = null;
+  private botInitialized = false;
 
   constructor() {
-    if (TELEGRAM_BOT_TOKEN && Telegram) {
-      this.bot = new Telegram(TELEGRAM_BOT_TOKEN);
-    } else {
-      if (!TELEGRAM_BOT_TOKEN) {
-        console.warn('[TelegramBot] TELEGRAM_BOT_TOKEN not configured');
-      }
-      if (!Telegram) {
-        console.warn('[TelegramBot] telegraf package not installed');
-      }
+    // Bot will be initialized lazily when needed
+  }
+
+  private async initBot() {
+    if (this.botInitialized) return this.bot;
+    this.botInitialized = true;
+    
+    if (!TELEGRAM_BOT_TOKEN) {
+      console.warn('[TelegramBot] TELEGRAM_BOT_TOKEN not configured');
+      return null;
     }
+    
+    const Telegram = await loadTelegraf();
+    if (!Telegram) {
+      return null;
+    }
+    
+    this.bot = new Telegram(TELEGRAM_BOT_TOKEN);
+    return this.bot;
   }
 
   /**
@@ -180,4 +200,3 @@ export class TelegramBotService {
     };
   }
 }
-
