@@ -157,9 +157,9 @@ export default function HomePage() {
 
   // Get urgent campaigns
   const urgentCampaigns = useMemo(() => {
-    return campaigns.filter((c: any) => c.urgent).slice(0, 5).map((c: any) => ({
-      id: c.id,
-      title: c.title,
+    return campaigns.filter((c: any) => c && c.id && c.urgent).slice(0, 5).map((c: any) => ({
+      id: c.id || '',
+      title: c.title || 'Без названия',
       fund: c.partner?.name || 'Фонд',
       image: c.image || emergencyImg,
       collected: Number(c.collected || 0),
@@ -169,9 +169,9 @@ export default function HomePage() {
 
   // Get active user campaigns (private campaigns)
   const activeUserCampaigns = useMemo(() => {
-    return campaigns.filter((c: any) => c.type === 'private' && c.status === 'active').slice(0, 5).map((c: any) => ({
-      id: c.id,
-      title: c.title,
+    return campaigns.filter((c: any) => c && c.id && c.type === 'private' && c.status === 'active').slice(0, 5).map((c: any) => ({
+      id: c.id || '',
+      title: c.title || 'Без названия',
       author: c.author?.fullName || c.author?.username || 'Пользователь',
       collected: Number(c.collected || 0),
       goal: Number(c.goal || 0),
@@ -183,12 +183,12 @@ export default function HomePage() {
   const completedCampaigns = useMemo(() => {
     if (!campaignsData?.data) return [];
     const completed = Array.isArray(campaignsData.data) 
-      ? campaignsData.data.filter((c: any) => c.status === 'completed')
-      : campaignsData.data.items?.filter((c: any) => c.status === 'completed') || [];
+      ? campaignsData.data.filter((c: any) => c && c.id && c.status === 'completed')
+      : campaignsData.data.items?.filter((c: any) => c && c.id && c.status === 'completed') || [];
     
     return completed.slice(0, 2).map((c: any) => ({
-      id: c.id,
-      title: c.title,
+      id: c.id || '',
+      title: c.title || 'Без названия',
       fund: c.partner?.name || c.author?.fullName || 'Организатор',
       image: c.image || mosqueImg,
       collected: Number(c.collected || 0),

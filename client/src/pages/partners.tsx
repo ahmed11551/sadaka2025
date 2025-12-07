@@ -105,6 +105,7 @@ export default function PartnersPage() {
 
   const filteredPartners = useMemo(() => {
     return partners.filter((partner: any) => {
+      if (!partner || !partner.id) return false;
       if (selectedCountry !== "all" && partner.country !== selectedCountry) return false;
       if (selectedCity !== "all" && partner.city !== selectedCity) return false;
       return true;
@@ -679,38 +680,45 @@ export default function PartnersPage() {
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : filteredPartners.length > 0 ? (
-          filteredPartners.map((partner: any) => (
-            <Card key={partner.id} className="overflow-hidden cursor-pointer hover:border-primary/50 transition-all" onClick={() => setSelectedFund(partner)}>
-              <CardContent className="p-4 flex gap-4">
-                <div className="w-16 h-16 rounded-lg bg-slate-50 shrink-0 overflow-hidden border flex items-center justify-center p-2">
-                  <img src={partner.logo || logoImg} alt={partner.name} className="w-full h-full object-contain" />
-                </div>
-                <div className="flex-1 space-y-2">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-bold flex items-center gap-1.5">
-                        {partner.name}
-                        {partner.verified && <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />}
-                      </h3>
-                      <p className="text-xs text-muted-foreground">{partner.city ? `${partner.city}, ${partner.country}` : partner.country}</p>
+          filteredPartners.map((partner: any) => {
+            if (!partner || !partner.id) return null;
+            return (
+              <Card key={partner.id} className="overflow-hidden cursor-pointer hover:border-primary/50 transition-all" onClick={() => setSelectedFund(partner)}>
+                <CardContent className="p-4 flex gap-4">
+                  <div className="w-16 h-16 rounded-lg bg-slate-50 shrink-0 overflow-hidden border flex items-center justify-center p-2">
+                    <img src={partner.logo || logoImg} alt={partner.name || 'Фонд'} className="w-full h-full object-contain" />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-bold flex items-center gap-1.5">
+                          {partner.name || 'Без названия'}
+                          {partner.verified && <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">{partner.city ? `${partner.city}, ${partner.country || ''}` : (partner.country || '')}</p>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <p className="text-sm text-muted-foreground leading-snug line-clamp-2">
-                    {partner.description}
-                  </p>
+                    
+                    {partner.description && (
+                      <p className="text-sm text-muted-foreground leading-snug line-clamp-2">
+                        {partner.description}
+                      </p>
+                    )}
 
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {partner.categories?.map((cat: string) => (
-                      <Badge key={cat} variant="secondary" className="text-[10px] px-1.5 h-5 bg-slate-100 text-slate-600 font-normal">
-                        {cat}
-                      </Badge>
-                    ))}
+                    {partner.categories && Array.isArray(partner.categories) && partner.categories.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {partner.categories.map((cat: string) => (
+                          <Badge key={cat} variant="secondary" className="text-[10px] px-1.5 h-5 bg-slate-100 text-slate-600 font-normal">
+                            {cat}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            );
+          })
         ) : (
           <div className="text-center py-12 bg-slate-50 rounded-xl">
             <p className="text-muted-foreground">Фонды не найдены</p>

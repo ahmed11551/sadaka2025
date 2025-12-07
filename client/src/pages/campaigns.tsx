@@ -140,7 +140,8 @@ export default function CampaignsPage() {
     if (!fundCampaignsData?.data) return [];
     const items = Array.isArray(fundCampaignsData.data) ? fundCampaignsData.data : fundCampaignsData.data.items || [];
     return items.filter((c: any) => {
-      const matchesSearch = !searchQuery || c.title?.toLowerCase().includes(searchQuery.toLowerCase()) || c.category?.toLowerCase().includes(searchQuery.toLowerCase());
+      if (!c || !c.id) return false;
+      const matchesSearch = !searchQuery || (c.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) || (c.category?.toLowerCase() || '').includes(searchQuery.toLowerCase());
       const matchesFilters = selectedFilters.length === 0 || selectedFilters.includes(c.category) || (c.urgent && selectedFilters.includes("Срочные"));
       
       let matchesQuickFilter = true;
@@ -159,7 +160,8 @@ export default function CampaignsPage() {
     if (!privateCampaignsData?.data) return [];
     const items = Array.isArray(privateCampaignsData.data) ? privateCampaignsData.data : privateCampaignsData.data.items || [];
     return items.filter((c: any) => {
-      const matchesSearch = !searchQuery || c.title?.toLowerCase().includes(searchQuery.toLowerCase()) || c.category?.toLowerCase().includes(searchQuery.toLowerCase());
+      if (!c || !c.id) return false;
+      const matchesSearch = !searchQuery || (c.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) || (c.category?.toLowerCase() || '').includes(searchQuery.toLowerCase());
       const matchesFilters = selectedFilters.length === 0 || selectedFilters.includes(c.category) || (c.urgent && selectedFilters.includes("Срочные"));
       
       let matchesQuickFilter = true;
@@ -468,6 +470,7 @@ export default function CampaignsPage() {
           ) : fundCampaigns.length > 0 ? (
             <>
               {fundCampaigns.map((campaign: any) => {
+                if (!campaign || !campaign.id) return null;
                 const collected = Number(campaign.collected || 0);
                 const goal = Number(campaign.goal || 1);
                 const progress = (collected / goal) * 100;
@@ -477,14 +480,14 @@ export default function CampaignsPage() {
                 
                 return (
                   <Card 
-                    key={campaign.id} 
+                    key={campaign.id || Math.random()} 
                     className="overflow-hidden border-none shadow-md group cursor-pointer active:scale-[0.98] transition-transform"
                     onClick={() => openDetails(campaign)}
                   >
                     <div className="relative h-40 overflow-hidden">
                       <img 
                         src={campaign.image || '/placeholder-campaign.jpg'} 
-                        alt={campaign.title} 
+                        alt={campaign.title || 'Кампания'} 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-100 z-10">
@@ -497,7 +500,7 @@ export default function CampaignsPage() {
                           )}
                           onClick={(e) => { 
                             e.stopPropagation(); 
-                            toggleFavorite(campaign.id);
+                            if (campaign.id) toggleFavorite(campaign.id);
                           }}
                         >
                           <Heart className={cn("w-4 h-4", favorites.includes(campaign.id) && "fill-current")} />
@@ -512,12 +515,14 @@ export default function CampaignsPage() {
                             Срочно
                           </Badge>
                         )}
-                        <Badge variant="secondary" className="bg-white/90 text-foreground backdrop-blur-sm shadow-sm">
-                          {campaign.category}
-                        </Badge>
+                        {campaign.category && (
+                          <Badge variant="secondary" className="bg-white/90 text-foreground backdrop-blur-sm shadow-sm">
+                            {campaign.category}
+                          </Badge>
+                        )}
                       </div>
                       <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
-                        {campaign.partner && (
+                        {campaign.partner && campaign.partner.id && campaign.partner.name && (
                           <Link href={`/partners/${campaign.partner.id}`} onClick={(e) => e.stopPropagation()}>
                             <p className="text-white text-xs font-medium hover:underline cursor-pointer inline-block">{campaign.partner.name}</p>
                           </Link>
@@ -526,7 +531,7 @@ export default function CampaignsPage() {
                     </div>
                     <CardContent className="p-4 space-y-4">
                       <div>
-                        <h3 className="font-bold text-lg leading-tight mb-1">{campaign.title}</h3>
+                        <h3 className="font-bold text-lg leading-tight mb-1">{campaign.title || 'Без названия'}</h3>
                         <div className="flex justify-between text-sm text-muted-foreground mb-2">
                           <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {campaign.participantCount || 0}</span>
                           {daysLeft !== null && (
