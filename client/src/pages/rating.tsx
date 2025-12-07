@@ -7,6 +7,8 @@ import { User as UserIcon, Trophy, Calendar, Users, Link as LinkIcon, Coins, Arr
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/empty-state";
+import { LoadingState } from "@/components/loading-state";
 
 const topDonors = [
   { id: 1, name: "Абдуллах М.", amount: 150000, donations: 12, country: "ru" },

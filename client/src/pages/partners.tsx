@@ -14,6 +14,9 @@ import { DonationModal } from "@/components/donation-modal";
 import { PartnerApplicationModal } from "@/components/partner-application-modal";
 import { useInsanPrograms } from "@/hooks/use-insan-programs";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/empty-state";
+import { LoadingState } from "@/components/loading-state";
+import { Building2 } from "lucide-react";
 
 const locations = {
   ru: {
@@ -196,9 +199,7 @@ export default function PartnersPage() {
 
           {/* Quick Stats */}
           {partnerDetailsLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
+            <LoadingState size="sm" text="Загрузка данных..." />
           ) : (
             <div className="grid grid-cols-2 gap-3">
               <Card className="border-none shadow-sm bg-white dark:bg-slate-800">
@@ -377,9 +378,7 @@ export default function PartnersPage() {
                  {isInsanPartner ? (
                    // Display Insan programs as campaigns
                    insanProgramsLoading ? (
-                     <div className="flex items-center justify-center py-8">
-                       <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                     </div>
+                     <LoadingState size="sm" text="Загрузка программ..." />
                    ) : Array.isArray(insanPrograms) && insanPrograms.length > 0 ? (
                      <div className="space-y-3">
                        {insanPrograms.map((program) => {
@@ -445,18 +444,16 @@ export default function PartnersPage() {
                        })}
                      </div>
                    ) : (
-                     <Card className="border-none shadow-sm">
-                       <CardContent className="p-6 text-center">
-                         <p className="text-sm text-muted-foreground">Нет активных программ</p>
-                       </CardContent>
-                     </Card>
+                     <EmptyState
+                       icon={GraduationCap}
+                       title="Нет активных программ"
+                       description="У этого фонда пока нет активных программ"
+                     />
                    )
                  ) : (
                    // Display regular campaigns for other partners
                    partnerCampaignsLoading ? (
-                     <div className="flex items-center justify-center py-8">
-                       <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                     </div>
+                     <LoadingState size="sm" text="Загрузка кампаний..." />
                    ) : partnerCampaignsData?.data ? (
                      <div className="space-y-3">
                        {(Array.isArray(partnerCampaignsData.data) ? partnerCampaignsData.data : partnerCampaignsData.data.items || []).map((campaign: any) => {
@@ -493,11 +490,11 @@ export default function PartnersPage() {
                        })}
                      </div>
                    ) : (
-                     <Card className="border-none shadow-sm">
-                       <CardContent className="p-6 text-center">
-                         <p className="text-sm text-muted-foreground">Нет активных кампаний</p>
-                       </CardContent>
-                     </Card>
+                     <EmptyState
+                       icon={Layout}
+                       title="Нет активных кампаний"
+                       description="У этого фонда пока нет активных кампаний"
+                     />
                    )
                  )}
                </div>
@@ -509,9 +506,7 @@ export default function PartnersPage() {
                  {isInsanPartner ? (
                    // Display Insan programs from API
                    insanProgramsLoading ? (
-                     <div className="flex items-center justify-center py-8">
-                       <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                     </div>
+                     <LoadingState size="sm" text="Загрузка программ..." />
                    ) : Array.isArray(insanPrograms) && insanPrograms.length > 0 ? (
                      <div className="space-y-3">
                        {insanPrograms.map((program) => {
@@ -566,11 +561,11 @@ export default function PartnersPage() {
                        })}
                      </div>
                    ) : (
-                     <Card className="border-none shadow-sm">
-                       <CardContent className="p-6 text-center">
-                         <p className="text-sm text-muted-foreground">Программы не найдены</p>
-                       </CardContent>
-                     </Card>
+                     <EmptyState
+                       icon={GraduationCap}
+                       title="Программы не найдены"
+                       description="У этого фонда пока нет доступных программ"
+                     />
                    )
                  ) : (
                    // Display default programs for other partners
@@ -707,9 +702,7 @@ export default function PartnersPage() {
         </div>
 
         {partnersLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-          </div>
+          <LoadingState text="Загрузка фондов..." />
         ) : filteredPartners.length > 0 ? (
           filteredPartners.map((partner: any) => {
             if (!partner || !partner.id) return null;
@@ -762,10 +755,18 @@ export default function PartnersPage() {
             );
           })
         ) : (
-          <div className="text-center py-12 bg-slate-50 rounded-xl">
-            <p className="text-muted-foreground">Фонды не найдены</p>
-            <Button variant="link" onClick={() => { setSelectedCountry("all"); setSelectedCity("all"); }}>Сбросить фильтры</Button>
-          </div>
+          <EmptyState
+            icon={Building2}
+            title="Фонды не найдены"
+            description="Попробуйте изменить параметры фильтрации или проверить позже"
+            action={{
+              label: "Сбросить фильтры",
+              onClick: () => {
+                setSelectedCountry("all");
+                setSelectedCity("all");
+              }
+            }}
+          />
         )}
 
         <div className="bg-primary/5 rounded-xl p-6 text-center space-y-3 mt-8 border border-primary/10">
