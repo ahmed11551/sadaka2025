@@ -10,10 +10,18 @@ export function useInsanPrograms() {
     queryKey: ['insan', 'programs'],
     queryFn: async () => {
       try {
-        return await insanApi.getPrograms();
+        const programs = await insanApi.getPrograms();
+        console.log('[useInsanPrograms] Loaded programs:', programs?.length || 0, programs);
+        return programs || [];
       } catch (error: any) {
-        // Silently handle errors - return empty array instead of throwing
-        console.error('Error loading Insan programs:', error);
+        // Log error for debugging
+        console.error('[useInsanPrograms] Error loading Insan programs:', error);
+        console.error('[useInsanPrograms] Error details:', {
+          message: error?.message,
+          status: error?.status,
+          details: error?.details,
+        });
+        // Return empty array instead of throwing - graceful degradation
         return [];
       }
     },
@@ -21,7 +29,7 @@ export function useInsanPrograms() {
     cacheTime: 10 * 60 * 1000, // 10 минут
     retry: false,
     throwOnError: false,
-    refetchOnMount: false,
+    refetchOnMount: true, // Загружать при монтировании
     refetchOnWindowFocus: false,
   });
 }

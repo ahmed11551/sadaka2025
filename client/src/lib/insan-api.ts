@@ -102,11 +102,37 @@ export const insanApi = {
    * Получить список всех программ фонда Инсан
    */
   getPrograms: async (): Promise<InsanProgram[]> => {
-    const response = await fetchInsanApi<InsanApiResponse<InsanProgram[]>>('/programs');
-    if (!response.success) {
-      throw new InsanApiError(response.status, 'Не удалось получить список программ');
+    try {
+      const response = await fetchInsanApi<InsanApiResponse<InsanProgram[]>>('/programs');
+      
+      // Debug logging
+      console.log('[Insan API] Response:', response);
+      
+      // Check if response has success field
+      if (response && typeof response === 'object' && 'success' in response) {
+        if (!response.success) {
+          throw new InsanApiError(response.status || 500, 'Не удалось получить список программ');
+        }
+        return Array.isArray(response.data) ? response.data : [];
+      }
+      
+      // If response is directly an array (different API format)
+      if (Array.isArray(response)) {
+        console.log('[Insan API] Response is array, returning directly');
+        return response;
+      }
+      
+      // If response has data field that is array
+      if (response && typeof response === 'object' && 'data' in response && Array.isArray((response as any).data)) {
+        return (response as any).data;
+      }
+      
+      console.warn('[Insan API] Unexpected response format:', response);
+      return [];
+    } catch (error) {
+      console.error('[Insan API] Error fetching programs:', error);
+      throw error;
     }
-    return response.data || [];
   },
 
   /**
