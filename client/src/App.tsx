@@ -11,9 +11,6 @@ import ZakatPage from "@/pages/zakat";
 import RatingPage from "@/pages/rating";
 import PartnersPage from "@/pages/partners";
 import ProfilePage from "@/pages/profile";
-// Login and Register pages removed - authentication not needed
-// import LoginPage from "@/pages/login";
-// import RegisterPage from "@/pages/register";
 import PaymentSuccessPage from "@/pages/payment-success";
 import PaymentFailedPage from "@/pages/payment-failed";
 import AdminDashboardPage from "@/pages/admin/index";
