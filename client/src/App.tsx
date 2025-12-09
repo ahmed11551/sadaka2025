@@ -1,9 +1,8 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Router } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { Layout } from "@/components/layout";
-import { AuthGuard } from "@/components/auth-guard";
 import { ErrorBoundary } from "@/components/error-boundary";
 import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/home";
@@ -12,29 +11,18 @@ import ZakatPage from "@/pages/zakat";
 import RatingPage from "@/pages/rating";
 import PartnersPage from "@/pages/partners";
 import ProfilePage from "@/pages/profile";
-import LoginPage from "@/pages/login";
-import RegisterPage from "@/pages/register";
+// Login and Register pages removed - authentication not needed
+// import LoginPage from "@/pages/login";
+// import RegisterPage from "@/pages/register";
 import PaymentSuccessPage from "@/pages/payment-success";
 import PaymentFailedPage from "@/pages/payment-failed";
 import AdminDashboardPage from "@/pages/admin/index";
 import AdminCampaignsPage from "@/pages/admin/campaigns";
 
-function Router() {
+function AppRouter() {
   return (
     <ErrorBoundary>
       <Switch>
-        {/* Routes without Layout */}
-        <Route path="/login">
-          <ErrorBoundary>
-            <LoginPage />
-          </ErrorBoundary>
-        </Route>
-        <Route path="/register">
-          <ErrorBoundary>
-            <RegisterPage />
-          </ErrorBoundary>
-        </Route>
-        
         {/* Routes with Layout - ORDER MATTERS! More specific routes first */}
         <Route path="/campaigns">
           <Layout>
@@ -99,9 +87,7 @@ function Router() {
         <Route path="/profile">
           <Layout>
             <ErrorBoundary>
-              <AuthGuard>
-                <ProfilePage />
-              </AuthGuard>
+              <ProfilePage />
             </ErrorBoundary>
           </Layout>
         </Route>
@@ -124,10 +110,12 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Toaster />
-      <Router />
-    </QueryClientProvider>
+    <Router>
+      <QueryClientProvider client={queryClient}>
+        <Toaster />
+        <AppRouter />
+      </QueryClientProvider>
+    </Router>
   );
 }
 

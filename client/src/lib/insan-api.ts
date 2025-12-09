@@ -1,7 +1,10 @@
 // API клиент для работы с API фонда "Инсан"
 // Документация: https://fondinsan.ru/api/v1/programs
 
-const INSAN_API_BASE_URL = import.meta.env.VITE_INSAN_API_URL || 'https://fondinsan.ru/api/v1';
+// Use proxy in browser to avoid CORS, direct URL in SSR
+const INSAN_API_BASE_URL = typeof window !== 'undefined'
+  ? '/api/insan'  // Use server proxy in browser
+  : (import.meta.env.VITE_INSAN_API_URL || 'https://fondinsan.ru/api/v1');  // Direct in SSR
 const INSAN_ACCESS_TOKEN = import.meta.env.VITE_INSAN_ACCESS_TOKEN || '0xRs6obpvPOx4lkGLYxepBOcMju';
 
 export interface InsanProgram {
@@ -46,7 +49,13 @@ async function fetchInsanApi<T>(
     );
   }
 
-  const url = `${INSAN_API_BASE_URL}${endpoint}${endpoint.includes('?') ? '&' : '?'}access-token=${INSAN_ACCESS_TOKEN}`;
+  // When using proxy, token is added by server
+  // When direct, add token as query parameter
+  const isProxyRequest = typeof window !== 'undefined' && INSAN_API_BASE_URL === '/api/insan';
+  const baseUrl = isProxyRequest 
+    ? `${INSAN_API_BASE_URL}${endpoint}`  // Proxy adds token automatically
+    : `${INSAN_API_BASE_URL}${endpoint}${endpoint.includes('?') ? '&' : '?'}access-token=${INSAN_ACCESS_TOKEN}`;
+  const url = baseUrl;
   
   // Add timeout to prevent hanging (10 seconds)
   const controller = new AbortController();

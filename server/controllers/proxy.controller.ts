@@ -2,8 +2,12 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../types';
 import { sendSuccess, sendError } from '../utils/response';
 
-const EXTERNAL_API_BASE_URL = process.env.API_BASE_URL || 'https://bot.e-replika.ru/api/v1';
-const EXTERNAL_API_TOKEN = process.env.API_TOKEN || 'test_token_123';
+const EXTERNAL_API_BASE_URL = 'https://bot.e-replika.ru/api';
+const EXTERNAL_API_TOKEN = 'test_token_123';
+
+// Insan API configuration
+const INSAN_API_BASE_URL = 'https://fondinsan.ru/api/v1';
+const INSAN_ACCESS_TOKEN = process.env.INSAN_ACCESS_TOKEN || '0xRs6obpvPOx4lkGLYxepBOcMju';
 
 export class ProxyController {
   /**
@@ -11,14 +15,14 @@ export class ProxyController {
    */
   proxyRequest = async (req: Request, res: Response) => {
     try {
-      // Extract path after /external/
-      // req.params.path contains the wildcard match from router.all('/external/:path(*)')
+      // Extract path from request
+      // req.params.path contains the wildcard match from router.all('/:path(*)')
       let path = '';
       if (req.params && typeof req.params === 'object' && 'path' in req.params) {
         path = req.params['path'] || '';
       } else if (req.path) {
-        // Fallback: extract from req.path
-        path = req.path.replace('/external/', '') || '';
+        // Fallback: use req.path directly (remove /api prefix if present)
+        path = req.path.replace(/^\/api\/?/, '') || '';
       }
       
       // Remove leading slash if present
@@ -26,19 +30,44 @@ export class ProxyController {
         path = path.slice(1);
       }
       
+      // Check if this is an Insan API request
+      const isInsanApi = path.startsWith('insan/');
+      if (isInsanApi) {
+        // Remove 'insan/' prefix
+        path = path.replace(/^insan\//, '');
+      }
+      
       const method = req.method;
       const queryString = req.url.includes('?') ? req.url.split('?')[1] : '';
-      const url = `${EXTERNAL_API_BASE_URL}/${path}${queryString ? `?${queryString}` : ''}`;
-
-      console.log(`[proxy] ${method} ${req.path} -> ${url}`);
-      console.log(`[proxy] req.params:`, req.params);
-      console.log(`[proxy] extracted path:`, path);
-
-      // Prepare headers
+      
+      let url: string;
       const headers: Record<string, string> = {
-        'Authorization': `Bearer ${EXTERNAL_API_TOKEN}`,
         'Content-Type': 'application/json',
       };
+      
+      if (isInsanApi) {
+        // Proxy to Insan API
+        const insanPath = path || '';
+        const insanQuery = queryString 
+          ? `${queryString}&access-token=${INSAN_ACCESS_TOKEN}`
+          : `access-token=${INSAN_ACCESS_TOKEN}`;
+        url = `${INSAN_API_BASE_URL}/${insanPath}?${insanQuery}`;
+        console.log(`[proxy] ${method} ${req.path} -> ${url} (Insan API)`);
+      } else {
+        // Proxy to bot.e-replika.ru API
+        // Remove /v1 from path if already present (to avoid double v1)
+        let cleanPath = path;
+        if (cleanPath.startsWith('v1/')) {
+          cleanPath = cleanPath.replace(/^v1\//, '');
+        }
+        // Add /v1 prefix to all API paths
+        const apiPath = cleanPath ? `v1/${cleanPath}` : 'v1';
+        url = `${EXTERNAL_API_BASE_URL}/${apiPath}${queryString ? `?${queryString}` : ''}`;
+        headers['Authorization'] = `Bearer ${EXTERNAL_API_TOKEN}`;
+        console.log(`[proxy] ${method} ${req.path} -> ${url}`);
+      }
+      
+      console.log(`[proxy] extracted path:`, path);
 
       // Copy relevant headers from request
       if (req.headers['content-type']) {

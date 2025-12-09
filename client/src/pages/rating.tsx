@@ -9,26 +9,24 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
 import { LoadingState } from "@/components/loading-state";
-
-const topDonors = [
-  { id: 1, name: "Абдуллах М.", amount: 150000, donations: 12, country: "ru" },
-  { id: 2, name: "Фатима К.", amount: 125000, donations: 8, country: "ru" },
-  { id: 3, name: "Умар С.", amount: 98000, donations: 15, country: "uz" },
-  { id: 4, name: "Аиша Б.", amount: 75000, donations: 5, country: "ru" },
-  { id: 5, name: "Мухаммад А.", amount: 60000, donations: 9, country: "tr" },
-];
+import { useTopDonors, useRatingStats, useTopCampaigns, useCompletedCampaigns } from "@/hooks/use-rating";
 
 export default function RatingPage() {
   const [activeTab, setActiveTab] = useState("general");
+
+  // Загружаем данные из API (с fallback на статические данные)
+  const { data: topDonors = [], isLoading: donorsLoading } = useTopDonors(
+    activeTab === "country" ? "ru" : undefined
+  );
+  const { data: stats, isLoading: statsLoading } = useRatingStats();
+  const { data: topCampaigns = [], isLoading: topCampaignsLoading } = useTopCampaigns();
+  const { data: completedCampaigns = [], isLoading: completedLoading } = useCompletedCampaigns("ru");
 
   const handleMarathonJoin = () => {
     toast.success("Вы в деле! Вы успешно зарегистрировались в марафоне Рамадана.");
   };
 
-  // Filter top donors by country (mocking "my country" as 'ru')
-  const filteredDonors = activeTab === "donors" 
-    ? topDonors.filter(d => d.country === "ru")
-    : topDonors;
+  const isLoading = donorsLoading || statsLoading || topCampaignsLoading || completedLoading;
 
   return (
     <div className="p-4 space-y-6 pt-6 pb-24">
@@ -50,33 +48,43 @@ export default function RatingPage() {
       </header>
 
       {/* Platform Analytics Dashboard */}
-      <div className="grid grid-cols-2 gap-3">
-         <Card className="border-none shadow-sm bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
-           <CardContent className="p-4 flex flex-col justify-between h-24">
-             <div className="flex justify-between items-start">
-               <TrendingUp className="w-5 h-5 opacity-80" />
-               <Badge variant="secondary" className="bg-white/20 text-white border-none hover:bg-white/30 text-[10px] px-1.5">+12%</Badge>
-             </div>
-             <div>
-               <p className="text-2xl font-bold">12.5M ₽</p>
-               <p className="text-xs opacity-80">Собрано всего</p>
-             </div>
-           </CardContent>
-         </Card>
-         
-         <Card className="border-none shadow-sm bg-white dark:bg-slate-800">
-           <CardContent className="p-4 flex flex-col justify-between h-24">
-             <div className="flex justify-between items-start">
-               <Users className="w-5 h-5 text-primary" />
-               <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
-             </div>
-             <div>
-               <p className="text-2xl font-bold text-foreground">1,240</p>
-               <p className="text-xs text-muted-foreground">Активных доноров</p>
-             </div>
-           </CardContent>
-         </Card>
-      </div>
+      {isLoading ? (
+        <LoadingState text="Загрузка статистики..." />
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="border-none shadow-sm bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+            <CardContent className="p-4 flex flex-col justify-between h-24">
+              <div className="flex justify-between items-start">
+                <TrendingUp className="w-5 h-5 opacity-80" />
+                <Badge variant="secondary" className="bg-white/20 text-white border-none hover:bg-white/30 text-[10px] px-1.5">+12%</Badge>
+              </div>
+              <div>
+                <p className="text-2xl font-bold">
+                  {stats?.totalCollected 
+                    ? `${(stats.totalCollected / 1000000).toFixed(1)}M ₽`
+                    : '12.5M ₽'}
+                </p>
+                <p className="text-xs opacity-80">Собрано всего</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-none shadow-sm bg-white dark:bg-slate-800">
+            <CardContent className="p-4 flex flex-col justify-between h-24">
+              <div className="flex justify-between items-start">
+                <Users className="w-5 h-5 text-primary" />
+                <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">
+                  {stats?.activeDonors?.toLocaleString() || '1,240'}
+                </p>
+                <p className="text-xs text-muted-foreground">Активных доноров</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <Button 
@@ -123,14 +131,17 @@ export default function RatingPage() {
 
       {activeTab === "general" && (
         <div className="space-y-4">
-          <Card className="border-none shadow-md bg-gradient-to-br from-amber-100 to-orange-50 border-amber-200">
-            <CardContent className="p-6 flex flex-col items-center text-center">
-               <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-3">
-                 <Globe className="w-8 h-8 text-amber-500 fill-amber-500" />
-               </div>
-               <h3 className="font-bold text-lg text-amber-900">Мировые лидеры</h3>
-               <p className="text-sm text-amber-800/80 mt-1 mb-4">Топ доноров по всем странам присутствия платформы</p>
-               <div className="w-full space-y-2">
+          {donorsLoading ? (
+            <LoadingState text="Загрузка рейтинга..." />
+          ) : topDonors.length > 0 ? (
+            <Card className="border-none shadow-md bg-gradient-to-br from-amber-100 to-orange-50 border-amber-200">
+              <CardContent className="p-6 flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-3">
+                  <Globe className="w-8 h-8 text-amber-500 fill-amber-500" />
+                </div>
+                <h3 className="font-bold text-lg text-amber-900">Мировые лидеры</h3>
+                <p className="text-sm text-amber-800/80 mt-1 mb-4">Топ доноров по всем странам присутствия платформы</p>
+                <div className="w-full space-y-2">
                   {topDonors.slice(0, 3).map((donor, i) => (
                     <div key={donor.id} className="bg-white/60 rounded-lg p-3 flex items-center gap-3">
                       <span className="font-bold text-amber-600 w-4">{i + 1}</span>
@@ -138,14 +149,21 @@ export default function RatingPage() {
                         {donor.country.toUpperCase()}
                       </div>
                       <div className="flex-1 text-left">
-                         <p className="font-bold text-sm text-amber-900">{donor.name}</p>
-                         <p className="text-xs text-amber-800">{donor.amount.toLocaleString()} ₽</p>
+                        <p className="font-bold text-sm text-amber-900">{donor.name}</p>
+                        <p className="text-xs text-amber-800">{donor.amount.toLocaleString()} ₽</p>
                       </div>
                     </div>
                   ))}
-               </div>
-            </CardContent>
-          </Card>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <EmptyState
+              icon={Trophy}
+              title="Нет данных"
+              description="Рейтинг доноров пока пуст"
+            />
+          )}
         </div>
       )}
 
@@ -154,7 +172,10 @@ export default function RatingPage() {
           <div className="flex justify-between items-center px-1">
             <p className="text-sm text-muted-foreground">Лидеры в вашем регионе (Россия)</p>
           </div>
-          {filteredDonors.map((donor, i) => (
+          {donorsLoading ? (
+            <LoadingState text="Загрузка рейтинга..." />
+          ) : topDonors.length > 0 ? (
+            topDonors.map((donor, i) => (
             <div key={donor.id} className="flex items-center gap-4 p-3 bg-white rounded-xl shadow-sm">
               <span className={cn(
                 "font-bold w-6 text-center",
@@ -171,18 +192,24 @@ export default function RatingPage() {
               </div>
               <span className="font-bold text-[#3E5F43]">{donor.amount.toLocaleString()} ₽</span>
             </div>
-          ))}
+            ))
+          ) : (
+            <EmptyState
+              icon={Trophy}
+              title="Нет данных"
+              description="Рейтинг доноров по стране пока пуст"
+            />
+          )}
         </div>
       )}
 
       {activeTab === "top_collections" && (
         <div className="space-y-3">
-           <p className="text-sm text-muted-foreground px-1">Самые масштабные сборы платформы</p>
-           {[
-             { id: 1, title: "Строительство Исламского центра в Москве", collected: 15400000, goal: 20000000 },
-             { id: 2, title: "Помощь пострадавшим при землетрясении", collected: 8500000, goal: 10000000 },
-             { id: 3, title: "Реконструкция исторической мечети", collected: 5200000, goal: 6000000 }
-           ].map((project, i) => (
+          <p className="text-sm text-muted-foreground px-1">Самые масштабные сборы платформы</p>
+          {topCampaignsLoading ? (
+            <LoadingState text="Загрузка топ сборов..." />
+          ) : topCampaigns.length > 0 ? (
+            topCampaigns.map((project, i) => (
              <Card key={project.id} className="border-none shadow-sm">
                <CardContent className="p-4">
                  <div className="flex gap-3">
@@ -204,18 +231,24 @@ export default function RatingPage() {
                  </div>
                </CardContent>
              </Card>
-           ))}
+            ))
+          ) : (
+            <EmptyState
+              icon={TrendingUp}
+              title="Нет данных"
+              description="Топ сборы пока пусты"
+            />
+          )}
         </div>
       )}
 
       {activeTab === "top_collections_country" && (
         <div className="space-y-3">
-           <p className="text-sm text-muted-foreground px-1">Завершенные сборы в вашей стране</p>
-           {[
-             { id: 101, title: "Ифтар Рамадан 2024 (Казань)", collected: 500000, goal: 500000 },
-             { id: 102, title: "Помощь школе №5 (Грозный)", collected: 120000, goal: 120000 },
-             { id: 103, title: "Колодец в селе (Дагестан)", collected: 85000, goal: 85000 }
-           ].map((project, i) => (
+          <p className="text-sm text-muted-foreground px-1">Завершенные сборы в вашей стране</p>
+          {completedLoading ? (
+            <LoadingState text="Загрузка завершенных сборов..." />
+          ) : completedCampaigns.length > 0 ? (
+            completedCampaigns.map((project, i) => (
              <Card key={project.id} className="border-none shadow-sm opacity-90">
                <CardContent className="p-4">
                  <div className="flex gap-3">
@@ -234,7 +267,14 @@ export default function RatingPage() {
                  </div>
                </CardContent>
              </Card>
-           ))}
+            ))
+          ) : (
+            <EmptyState
+              icon={Check}
+              title="Нет данных"
+              description="Завершенные сборы пока пусты"
+            />
+          )}
         </div>
       )}
     </div>

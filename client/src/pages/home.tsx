@@ -10,13 +10,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { User as UserIcon, Heart, Gift, Check, Sparkles, ChevronLeft, ChevronRight, Layers, ChevronDown, ChevronUp, MessageCircle, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import emergencyImg from "@assets/generated_images/emergency_humanitarian_aid.png";
 import mosqueImg from "@assets/generated_images/mosque_construction_campaign.png";
 import educationImg from "@assets/generated_images/education_charity_campaign.png";
 import { useCampaigns } from "@/hooks/use-campaigns";
 import { usePartners } from "@/hooks/use-partners";
 import { useAuth } from "@/hooks/use-auth";
+import { useInsanPrograms } from "@/hooks/use-insan-programs";
 import { DonationModal } from "@/components/donation-modal";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
@@ -122,11 +123,50 @@ export default function HomePage() {
   const [selectedPlanPeriod, setSelectedPlanPeriod] = useState<{ planId: string; period: string; price: number } | null>(null);
   
   // Handle subscription period selection
-  const handlePeriodSelect = (planId: string, period: string, price: number) => {
+  const handlePeriodSelect = async (planId: string, period: string, price: number) => {
     setSelectedPlanPeriod({ planId, period, price });
-    // TODO: Integrate with subscription payment flow
-    // For now, redirect to profile or show subscription modal
-    toast.info(`Выбран тариф: ${planId === 'pro' ? 'Мутахсин (Pro)' : 'Сахиб аль-Вакф (Premium)'} на период ${period}. Цена: ${price} ₽\n\nИнтеграция с оплатой будет добавлена.`);
+    
+    // Map period to tier format
+    const tierMap: Record<string, string> = {
+      '1month': planId === 'pro' ? 'PRO_MONTHLY' : 'PREMIUM_MONTHLY',
+      '6months': planId === 'pro' ? 'PRO_6MONTHS' : 'PREMIUM_6MONTHS',
+      '12months': planId === 'pro' ? 'PRO_YEARLY' : 'PREMIUM_YEARLY',
+      '3years': planId === 'pro' ? 'PRO_3YEARS' : 'PREMIUM_3YEARS',
+    };
+    
+    const tier = tierMap[period] || `${planId.toUpperCase()}_${period.toUpperCase()}`;
+    
+    try {
+      // Try to create checkout session
+      const { subscriptionApi } = await import('@/lib/api');
+      const response = await subscriptionApi.checkout({ tier });
+      
+      if (response?.data?.paymentUrl) {
+        // Redirect to payment URL
+        window.location.href = response.data.paymentUrl;
+      } else if (response?.data?.checkoutUrl) {
+        window.location.href = response.data.checkoutUrl;
+      } else {
+        // Fallback: open donation modal for subscription
+        setDonationType('subscription');
+        setSelectedCampaignForDonation({
+          id: `subscription-${planId}-${period}`,
+          title: `${planId === 'pro' ? 'Мутахсин (Pro)' : 'Сахиб аль-Вакф (Premium)'} - ${period}`,
+          amount: price,
+        });
+        setDonationModalOpen(true);
+      }
+    } catch (error: any) {
+      // If API doesn't support subscriptions, open donation modal as fallback
+      console.log('[Subscription] API not available, using donation modal fallback');
+      setDonationType('subscription');
+      setSelectedCampaignForDonation({
+        id: `subscription-${planId}-${period}`,
+        title: `${planId === 'pro' ? 'Мутахсин (Pro)' : 'Сахиб аль-Вакф (Premium)'} - ${period}`,
+        amount: price,
+      });
+      setDonationModalOpen(true);
+    }
   };
   const [shuffledFunds, setShuffledFunds] = useState<any[]>([]);
   const [donationModalOpen, setDonationModalOpen] = useState(false);
@@ -150,6 +190,9 @@ export default function HomePage() {
     country,
     limit: 10
   });
+
+  // Fetch Insan programs to add Insan fund to list
+  const { data: insanProgramsForFunds } = useInsanPrograms();
 
   // Process campaigns data
   const campaigns = useMemo(() => {
@@ -200,27 +243,48 @@ export default function HomePage() {
 
   // Get partners for fundsByCountry
   const fundsByCountry = useMemo(() => {
-    if (!partnersData?.data) return { ru: [], uz: [], tr: [] };
-    const partners = Array.isArray(partnersData.data) ? partnersData.data : partnersData.data.items || [];
+    const apiPartners: any[] = [];
+    if (partnersData?.data) {
+      const partners = Array.isArray(partnersData.data) ? partnersData.data : partnersData.data.items || [];
+      apiPartners.push(...partners);
+    }
+    
+    // Add Insan fund if programs are loaded
+    if (insanProgramsForFunds && insanProgramsForFunds.length > 0) {
+      const insanExists = apiPartners.some((p: any) => p.id === 'insan' || p.slug === 'insan');
+      if (!insanExists) {
+        apiPartners.push({
+          id: 'insan',
+          slug: 'insan',
+          name: 'Фонд Инсан',
+          country: 'ru',
+          verified: true,
+          website: 'https://fondinsan.ru',
+        });
+      }
+    }
     
     return {
-      ru: partners.filter((p: any) => p.country === 'ru').map((p: any) => ({
+      ru: apiPartners.filter((p: any) => p.country === 'ru').map((p: any) => ({
         id: p.id,
         name: p.name,
-        verified: p.verified
+        verified: p.verified,
+        website: p.website || (p.id === 'insan' ? 'https://fondinsan.ru' : undefined)
       })),
-      uz: partners.filter((p: any) => p.country === 'uz').map((p: any) => ({
+      uz: apiPartners.filter((p: any) => p.country === 'uz').map((p: any) => ({
         id: p.id,
         name: p.name,
-        verified: p.verified
+        verified: p.verified,
+        website: p.website
       })),
-      tr: partners.filter((p: any) => p.country === 'tr').map((p: any) => ({
+      tr: apiPartners.filter((p: any) => p.country === 'tr').map((p: any) => ({
         id: p.id,
         name: p.name,
-        verified: p.verified
+        verified: p.verified,
+        website: p.website
       }))
     };
-  }, [partnersData]);
+  }, [partnersData, insanProgramsForFunds]);
 
   useEffect(() => {
     if (urgentCampaigns.length > 0) {
@@ -296,11 +360,8 @@ export default function HomePage() {
               </div>
             </>
           ) : (
-            <Link href="/login">
-              <Button variant="outline" size="sm" className="h-10">
-                Войти
-              </Button>
-            </Link>
+            // Login removed - authentication not needed
+            null
           )}
         </div>
       </header>
@@ -1309,6 +1370,7 @@ export default function HomePage() {
 
       {/* Donation Modal */}
       <DonationModal
+        key={donationModalOpen ? `donation-${donationType}-${selectedCampaignForDonation?.amount || 0}` : 'donation-closed'}
         open={donationModalOpen}
         onOpenChange={(open) => {
           setDonationModalOpen(open);
@@ -1316,14 +1378,23 @@ export default function HomePage() {
             // Reset amounts when modal closes
             setQuickDonationAmount(null);
             setProjectDonationAmount(null);
+            setSelectedCampaignForDonation(null);
           }
         }}
+        type={donationType}
         campaignId={selectedCampaignForDonation?.id}
-        partnerId={selectedCampaignForDonation?.partnerId}
+        partnerId={selectedCampaignForDonation?.partnerId || selectedFund || undefined}
         campaignTitle={selectedCampaignForDonation?.title}
         category={donationCategory || "sadaka"}
-        type={donationType}
-        defaultAmount={donationType === "quick" ? quickDonationAmount || undefined : donationType === "mubarakway" ? projectDonationAmount || undefined : undefined}
+        defaultAmount={
+          donationType === "subscription" 
+            ? (selectedCampaignForDonation?.amount && selectedCampaignForDonation.amount > 0 ? selectedCampaignForDonation.amount : undefined)
+            : donationType === "quick" 
+            ? (quickDonationAmount && quickDonationAmount > 0 ? quickDonationAmount : undefined)
+            : donationType === "mubarakway" 
+            ? (projectDonationAmount && projectDonationAmount > 0 ? projectDonationAmount : undefined)
+            : (selectedCampaignForDonation?.amount && selectedCampaignForDonation.amount > 0 ? selectedCampaignForDonation.amount : undefined)
+        }
       />
     </div>
   );

@@ -15,6 +15,7 @@ import { Loader2, Heart, CreditCard, Smartphone, Building2 } from "lucide-react"
 import { cn } from "@/lib/utils";
 import { handleApiError } from "@/lib/error-handler";
 import { useLocation } from "wouter";
+import { toast } from "sonner";
 
 const donationSchema = z.object({
   amount: z.number().positive("Сумма должна быть больше 0").min(1, "Минимальная сумма 1 ₽"),

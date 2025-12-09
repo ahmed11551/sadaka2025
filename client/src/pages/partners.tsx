@@ -94,6 +94,31 @@ export default function PartnersPage() {
   const { data: partnerDetails, isLoading: partnerDetailsLoading } = usePartner(selectedFund?.id || '');
   const { data: partnerCampaignsData, isLoading: partnerCampaignsLoading } = usePartnerCampaigns(selectedFund?.id || '', 1, 10);
   
+  // Always fetch Insan programs (they will be shown if partner is Insan)
+  const { data: insanProgramsData, isLoading: insanProgramsLoading } = useInsanPrograms();
+  const insanPrograms = Array.isArray(insanProgramsData) ? insanProgramsData : [];
+
+  // Create Insan partner object (must be before fundWebsite)
+  const insanPartner = useMemo(() => {
+    if (insanPrograms.length === 0) return null;
+    return {
+      id: 'insan',
+      slug: 'insan',
+      name: 'Фонд Инсан',
+      nameAr: 'صندوق إنسان',
+      description: 'Благотворительный фонд "Инсан" - один из ведущих фондов России, помогающий нуждающимся, сиротам, больным и пострадавшим.',
+      country: 'ru',
+      city: 'mah',
+      verified: true,
+      logo: 'https://fondinsan.ru/uploads/cache/Programs/Program16/78e1622e63-2_400x400.jpg',
+      website: 'https://fondinsan.ru',
+      type: 'Благотворительный фонд',
+      categories: ['Закят', 'Садака', 'Помощь нуждающимся'],
+      isInsan: true,
+      programsCount: insanPrograms.length
+    };
+  }, [insanPrograms]);
+
   // Check if selected partner is Insan (by slug or id or name)
   const isInsanPartner = useMemo(() => {
     const fundName = (selectedFund?.name || partnerDetails?.data?.name || '').toLowerCase();
@@ -108,10 +133,22 @@ export default function PartnersPage() {
       fundName.includes('insan')
     );
   }, [selectedFund, partnerDetails]);
-  
-  // Always fetch Insan programs (they will be shown if partner is Insan)
-  const { data: insanProgramsData, isLoading: insanProgramsLoading } = useInsanPrograms();
-  const insanPrograms = Array.isArray(insanProgramsData) ? insanProgramsData : [];
+
+  // Get website URL for selected fund
+  const fundWebsite = useMemo(() => {
+    // Always prioritize selectedFund website if available
+    if (selectedFund?.website) {
+      return selectedFund.website;
+    }
+    
+    // For Insan partner, use default website (don't depend on insanPartner object)
+    if (isInsanPartner) {
+      return 'https://fondinsan.ru';
+    }
+    
+    // Fallback to partnerDetails
+    return partnerDetails?.data?.website;
+  }, [isInsanPartner, selectedFund, partnerDetails]);
   
   // Debug logging (only in development)
   useEffect(() => {
@@ -128,7 +165,7 @@ export default function PartnersPage() {
         data: insanPrograms.slice(0, 2),
       });
     }
-  }, [selectedFund, isInsanPartner, insanPrograms, insanProgramsLoading]);
+  }, [selectedFund, isInsanPartner, insanPrograms.length, insanProgramsLoading]);
 
   // Process partners data
   const partners = useMemo(() => {
@@ -144,13 +181,25 @@ export default function PartnersPage() {
   }, [partnersData]);
 
   const filteredPartners = useMemo(() => {
-    return partners.filter((partner: any) => {
+    const filtered = partners.filter((partner: any) => {
       if (!partner || !partner.id) return false;
       if (selectedCountry !== "all" && partner.country !== selectedCountry) return false;
       if (selectedCity !== "all" && partner.city !== selectedCity) return false;
       return true;
     });
-  }, [partners, selectedCountry, selectedCity]);
+    
+    // Add Insan partner if programs are loaded and it matches filters
+    if (insanPartner && 
+        (selectedCountry === "all" || selectedCountry === "ru") &&
+        (selectedCity === "all" || selectedCity === "mah")) {
+      // Check if Insan is not already in the list
+      if (!filtered.find((p: any) => p.id === 'insan' || p.slug === 'insan')) {
+        return [insanPartner, ...filtered];
+      }
+    }
+    
+    return filtered;
+  }, [partners, selectedCountry, selectedCity, insanPartner]);
 
   // Reset city when country changes
   useEffect(() => {
@@ -165,8 +214,32 @@ export default function PartnersPage() {
     if (match && params?.id) {
       const fundId = params.id;
       // Try to find partner by ID or slug
-      const found = partners.find((p: any) => p.id === fundId || p.slug === fundId);
+      let found = partners.find((p: any) => p.id === fundId || p.slug === fundId);
+      
+      // If not found and it's Insan, create Insan partner object
+      if (!found && (fundId === 'insan' || fundId.toLowerCase().includes('insan'))) {
+        found = {
+          id: 'insan',
+          slug: 'insan',
+          name: 'Фонд Инсан',
+          nameAr: 'صندوق إنسان',
+          description: 'Благотворительный фонд "Инсан" - один из ведущих фондов России, помогающий нуждающимся, сиротам, больным и пострадавшим.',
+          country: 'ru',
+          city: 'mah',
+          verified: true,
+          logo: 'https://fondinsan.ru/uploads/cache/Programs/Program16/78e1622e63-2_400x400.jpg',
+          website: 'https://fondinsan.ru',
+          type: 'Благотворительный фонд',
+          categories: ['Закят', 'Садака', 'Помощь нуждающимся'],
+          isInsan: true,
+        };
+      }
+      
       if (found) {
+        // Ensure website is set for Insan
+        if ((found.id === 'insan' || found.slug === 'insan') && !found.website) {
+          found = { ...found, website: 'https://fondinsan.ru' };
+        }
         setSelectedFund(found);
       }
     }
@@ -272,15 +345,18 @@ export default function PartnersPage() {
             </Button>
             <Button 
               variant="outline" 
-              className="flex-1 h-12 text-base"
-              onClick={() => {
-                if (partnerDetails?.data?.website) {
-                  window.open(partnerDetails.data.website, '_blank', 'noopener,noreferrer');
+              className="flex-1 h-12 text-base cursor-pointer hover:bg-primary/5 hover:border-primary/50"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const website = fundWebsite || (isInsanPartner ? 'https://fondinsan.ru' : selectedFund?.website);
+                if (website) {
+                  window.open(website, '_blank', 'noopener,noreferrer');
                 } else {
                   toast.error("Сайт фонда не указан");
                 }
               }}
-              disabled={!partnerDetails?.data?.website}
+              disabled={false}
             >
               <Globe className="w-5 h-5 mr-2" /> Сайт
             </Button>
@@ -288,17 +364,17 @@ export default function PartnersPage() {
               variant="outline" 
               className="h-12 text-base"
               onClick={() => {
-                if (partnerDetails?.data?.website) {
+                if (fundWebsite) {
                   // Открываем сайт отчетности (основной сайт или можно добавить /reports)
-                  const reportUrl = partnerDetails.data.website.endsWith('/') 
-                    ? partnerDetails.data.website + 'reports'
-                    : partnerDetails.data.website + '/reports';
+                  const reportUrl = fundWebsite.endsWith('/') 
+                    ? fundWebsite + 'reports'
+                    : fundWebsite + '/reports';
                   window.open(reportUrl, '_blank', 'noopener,noreferrer');
                 } else {
                   toast.error("Сайт фонда не указан");
                 }
               }}
-              disabled={!partnerDetails?.data?.website}
+              disabled={!fundWebsite}
               title="Отчеты фонда"
             >
               <FileBarChart className="w-5 h-5" />
@@ -379,14 +455,14 @@ export default function PartnersPage() {
                 </div>
 
                 {/* Contacts */}
-                {(partnerDetails?.data?.website || partnerDetails?.data?.email) && (
+                {(fundWebsite || partnerDetails?.data?.email) && (
                   <div className="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-muted/50 space-y-4">
                     <h3 className="font-bold">Контактная информация</h3>
                     <div className="space-y-3">
-                      {partnerDetails?.data?.website && (
-                        <a href={partnerDetails.data.website} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-sm hover:text-primary">
+                      {fundWebsite && (
+                        <a href={fundWebsite} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-sm hover:text-primary">
                           <Globe className="w-5 h-5 text-muted-foreground" />
-                          {partnerDetails.data.website.replace(/^https?:\/\//, '')}
+                          {fundWebsite.replace(/^https?:\/\//, '')}
                         </a>
                       )}
                       {partnerDetails?.data?.email && (
@@ -754,13 +830,27 @@ export default function PartnersPage() {
                   </div>
                   <div className="flex-1 space-y-2">
                     <div className="flex justify-between items-start">
-                      <div>
+                      <div className="flex-1">
                         <h3 className="font-bold flex items-center gap-1.5">
                           {partner.name || 'Без названия'}
                           {partner.verified && <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-50" />}
                         </h3>
                         <p className="text-xs text-muted-foreground">{partner.city ? `${partner.city}, ${partner.country || ''}` : (partner.country || '')}</p>
                       </div>
+                      {partner.website && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 shrink-0 ml-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(partner.website, '_blank', 'noopener,noreferrer');
+                          }}
+                          title="Открыть сайт фонда"
+                        >
+                          <Globe className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
                     
                     {partner.description && (

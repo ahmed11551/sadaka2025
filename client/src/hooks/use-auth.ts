@@ -5,9 +5,11 @@ import { toast } from 'sonner';
 export function useAuth() {
   const queryClient = useQueryClient();
 
+  // No authentication needed - all requests use test_token_123
+  // Try to get user info from API, but don't require it
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => authApi.getCurrentUser(),
+    queryFn: () => authApi.getCurrentUser().catch(() => null),
     retry: false,
     throwOnError: false,
     refetchOnMount: false,
@@ -47,7 +49,8 @@ export function useAuth() {
   return {
     user: (user as any)?.data,
     isLoading,
-    isAuthenticated: !!(user as any)?.data,
+    // Always authenticated - all requests use test_token_123
+    isAuthenticated: true,
     login: (data: Parameters<typeof loginMutation.mutate>[0], options?: Parameters<typeof loginMutation.mutate>[1]) => {
       loginMutation.mutate(data, {
         ...options,

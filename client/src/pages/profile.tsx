@@ -15,7 +15,7 @@ import {
   User, Settings, History, FileText, CreditCard, 
   Trophy, Star, ChevronRight, LogOut, Heart, Building2, Clock, Users, MessageCircle, Bell, Shield, Globe, Moon, Mail, Loader2
 } from "lucide-react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { cn } from "@/lib/utils";
 import userAvatar from "@assets/generated_images/user_avatar_placeholder.png";
 import { useFavorites } from "@/hooks/use-favorites";

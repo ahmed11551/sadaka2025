@@ -2,16 +2,18 @@ import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { favoriteApi } from '@/lib/api';
 import { handleApiError } from '@/lib/error-handler';
-import { useAuth } from './use-auth';
+import { toast } from 'sonner';
+// No authentication needed - all requests use test_token_123
 
 export function useFavorites() {
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuth();
+  // Always enabled - no authentication needed
+  const isAuthenticated = true;
 
   const { data: favoritesData } = useQuery({
     queryKey: ['userFavorites'],
     queryFn: () => favoriteApi.getUserFavorites(),
-    enabled: isAuthenticated,
+    enabled: true, // Always enabled - no authentication needed
   });
 
   const toggleMutation = useMutation({
@@ -43,13 +45,7 @@ export function useFavorites() {
   }, [favoritesData]) as string[];
 
   const toggleFavorite = (campaignId: string, redirectToLogin?: () => void) => {
-    if (!isAuthenticated) {
-      toast.error('Пожалуйста, войдите в систему, чтобы добавить в избранное');
-      if (redirectToLogin) {
-        redirectToLogin();
-      }
-      return;
-    }
+    // No authentication check needed - all requests use test_token_123
     toggleMutation.mutate(campaignId);
   };
 

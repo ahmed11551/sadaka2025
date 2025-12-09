@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Clock, ArrowRight, Plus, Info, Upload, Search, Calendar, Check, Filter, Building2, User, FileText, X, Heart, MessageCircle, MapPin, Loader2, CheckCircle2 } from "lucide-react";
+import { Users, Clock, ArrowRight, Plus, Info, Upload, Search, Calendar, Check, Filter, Building2, User, FileText, X, Heart as HeartIcon, MessageCircle, MapPin, Loader2, CheckCircle2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
 import { LoadingState } from "@/components/loading-state";
 import { usePartners } from "@/hooks/use-partners";
+import { useInsanPrograms } from "@/hooks/use-insan-programs";
 
 // Helper function to format time ago
 function getTimeAgo(date: Date): string {
@@ -74,18 +75,45 @@ export default function CampaignsPage() {
   // Fetch partners for fund selection
   const { data: partnersData, isLoading: partnersLoading } = usePartners({ limit: 100 });
   
+  // Fetch Insan programs to add Insan fund to partners list
+  const { data: insanProgramsForPartners } = useInsanPrograms();
+  
   // Process partners data
   const partners = useMemo(() => {
-    if (!partnersData?.data) return [];
-    const data = partnersData.data;
-    if (Array.isArray(data)) {
-      return data.filter((p: any) => p && p.id && p.verified);
+    const apiPartners: any[] = [];
+    if (partnersData?.data) {
+      const data = partnersData.data;
+      if (Array.isArray(data)) {
+        apiPartners.push(...data.filter((p: any) => p && p.id && p.verified));
+      } else if (data && typeof data === 'object' && 'items' in data) {
+        apiPartners.push(...(Array.isArray(data.items) ? data.items.filter((p: any) => p && p.id && p.verified) : []));
+      }
     }
-    if (data && typeof data === 'object' && 'items' in data) {
-      return Array.isArray(data.items) ? data.items.filter((p: any) => p && p.id && p.verified) : [];
+    
+    // Add Insan fund if programs are loaded and it's not already in the list
+    if (insanProgramsForPartners && insanProgramsForPartners.length > 0) {
+      const insanExists = apiPartners.some((p: any) => p.id === 'insan' || p.slug === 'insan');
+      if (!insanExists) {
+        apiPartners.unshift({
+          id: 'insan',
+          slug: 'insan',
+          name: 'Фонд Инсан',
+          nameAr: 'صندوق إنسان',
+          description: 'Благотворительный фонд "Инсан" - один из ведущих фондов России, помогающий нуждающимся, сиротам, больным и пострадавшим.',
+          country: 'ru',
+          city: 'mah',
+          verified: true,
+          logo: 'https://fondinsan.ru/uploads/cache/Programs/Program16/78e1622e63-2_400x400.jpg',
+          website: 'https://fondinsan.ru',
+          type: 'Благотворительный фонд',
+          categories: ['Закят', 'Садака', 'Помощь нуждающимся'],
+          isInsan: true,
+        });
+      }
     }
-    return [];
-  }, [partnersData]);
+    
+    return apiPartners;
+  }, [partnersData, insanProgramsForPartners]);
   
   // Campaign creation form with react-hook-form
   const campaignForm = useForm<CampaignFormData>({
@@ -144,6 +172,9 @@ export default function CampaignsPage() {
     limit: 50
   });
 
+  // Fetch Insan programs
+  const { data: insanPrograms, isLoading: insanProgramsLoading } = useInsanPrograms();
+
   const { data: privateCampaignsData, isLoading: privateCampaignsLoading } = useCampaigns({
     type: 'private',
     status: 'active',
@@ -159,9 +190,37 @@ export default function CampaignsPage() {
 
   // Process campaigns data
   const fundCampaigns = useMemo(() => {
-    if (!fundCampaignsData?.data) return [];
-    const items = Array.isArray(fundCampaignsData.data) ? fundCampaignsData.data : fundCampaignsData.data.items || [];
-    return items.filter((c: any) => {
+    const apiCampaigns = fundCampaignsData?.data 
+      ? (Array.isArray(fundCampaignsData.data) ? fundCampaignsData.data : fundCampaignsData.data.items || [])
+      : [];
+    
+    // Convert Insan programs to campaign format
+    const insanCampaigns = (insanPrograms || []).map((program: any) => ({
+      id: `insan-${program.id}`,
+      title: program.title,
+      description: program.short || '',
+      fullDescription: program.description || '',
+      image: program.image || '/placeholder-campaign.jpg',
+      category: 'Фонд Инсан',
+      type: 'fund',
+      status: 'active',
+      goal: program.default_amount * 100 || 100000,
+      collected: 0,
+      currency: 'RUB',
+      partner: {
+        id: 'insan',
+        name: 'Фонд Инсан',
+        verified: true
+      },
+      url: program.url,
+      insanProgramId: program.id,
+      isInsanProgram: true
+    }));
+
+    // Combine API campaigns and Insan programs
+    const allCampaigns = [...apiCampaigns, ...insanCampaigns];
+    
+    return allCampaigns.filter((c: any) => {
       if (!c || !c.id) return false;
       const matchesSearch = !searchQuery || (c.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) || (c.category?.toLowerCase() || '').includes(searchQuery.toLowerCase());
       const matchesFilters = selectedFilters.length === 0 || selectedFilters.includes(c.category) || (c.urgent && selectedFilters.includes("Срочные"));
@@ -176,7 +235,7 @@ export default function CampaignsPage() {
       
       return matchesSearch && matchesFilters && matchesQuickFilter;
     });
-  }, [fundCampaignsData, searchQuery, selectedFilters, quickFilter]);
+  }, [fundCampaignsData, insanPrograms, searchQuery, selectedFilters, quickFilter]);
 
   const privateCampaigns = useMemo(() => {
     if (!privateCampaignsData?.data) return [];
@@ -477,7 +536,7 @@ export default function CampaignsPage() {
                  <span>Архив</span>
                </TabsTrigger>
                <TabsTrigger value="favorites" className="flex flex-col items-center gap-1 py-2 text-[10px] sm:text-xs">
-                 <Heart className="w-4 h-4" />
+                 <HeartIcon className="w-4 h-4" />
                  <span>Избранное</span>
                </TabsTrigger>
              </TabsList>
@@ -485,7 +544,7 @@ export default function CampaignsPage() {
         </div>
 
         <TabsContent value="funds" className="space-y-4 mt-0">
-          {fundCampaignsLoading ? (
+          {(fundCampaignsLoading || insanProgramsLoading) ? (
             <LoadingState text="Загрузка кампаний фондов..." />
           ) : fundCampaigns.length > 0 ? (
             <>
@@ -523,7 +582,7 @@ export default function CampaignsPage() {
                             if (campaign.id) toggleFavorite(campaign.id);
                       }}
                     >
-                      <Heart className={cn("w-4 h-4", favorites.includes(campaign.id) && "fill-current")} />
+                      <HeartIcon className={cn("w-4 h-4", favorites.includes(campaign.id) && "fill-current")} />
                     </Button>
                     <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full bg-white/90 text-muted-foreground hover:text-primary shadow-sm" onClick={(e) => { e.stopPropagation(); }}>
                       <MessageCircle className="w-4 h-4" />
@@ -1125,7 +1184,7 @@ export default function CampaignsPage() {
                         toggleFavorite(campaign.id);
                       }}
                     >
-                      <Heart className={cn("w-4 h-4", favorites.includes(campaign.id) && "fill-current")} />
+                      <HeartIcon className={cn("w-4 h-4", favorites.includes(campaign.id) && "fill-current")} />
                     </Button>
                     <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full bg-white/90 text-muted-foreground hover:text-primary shadow-sm" onClick={(e) => { e.stopPropagation(); }}>
                       <MessageCircle className="w-4 h-4" />
@@ -1272,7 +1331,7 @@ export default function CampaignsPage() {
                             toggleFavorite(campaign.id);
                           }}
                         >
-                          <Heart className="w-4 h-4 fill-current" />
+                          <HeartIcon className="w-4 h-4 fill-current" />
                         </Button>
                       </div>
                       <div className="absolute top-2 right-2 flex gap-2">
@@ -1330,6 +1389,7 @@ export default function CampaignsPage() {
       {/* Campaign Details Dialog */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto p-0">
+          <DialogTitle className="sr-only">{selectedCampaign?.title || 'Детали кампании'}</DialogTitle>
           {selectedCampaign && (
             <div className="space-y-0">
               <div className="relative h-56">

@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --legacy-peer-deps || npm install
 
 # Copy all necessary files for frontend build
 COPY client ./client
@@ -32,7 +32,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --legacy-peer-deps || npm install
 
 # Copy backend source
 COPY server ./server
@@ -64,7 +64,7 @@ WORKDIR /app
 
 # Install production dependencies only
 COPY package*.json ./
-RUN npm install --only=production
+RUN npm install --only=production --legacy-peer-deps || npm install --only=production
 
 # Copy built files
 COPY --from=frontend-builder /app/dist/public ./dist/public
