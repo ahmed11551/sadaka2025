@@ -33,7 +33,11 @@ export function useFundReports(params?: {
   return useQuery({
     queryKey: ['reports', 'funds', params],
     queryFn: () => reportsApi.getFundReports(params),
+    enabled: !!params?.fund_id, // Only fetch when fund_id is provided
     throwOnError: false,
+    refetchOnMount: true, // Refetch when component mounts to get latest reports
+    refetchOnWindowFocus: true, // Refetch when window gains focus to catch new reports
+    refetchInterval: 30000, // Refetch every 30 seconds to automatically get newly published reports
   });
 }
 

@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DonationModal } from "@/components/donation-modal";
 import { PartnerApplicationModal } from "@/components/partner-application-modal";
 import { useInsanPrograms } from "@/hooks/use-insan-programs";
+import { useFundReports } from "@/hooks/use-reports";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
 import { LoadingState } from "@/components/loading-state";
@@ -97,6 +98,18 @@ export default function PartnersPage() {
   // Always fetch Insan programs (they will be shown if partner is Insan)
   const { data: insanProgramsData, isLoading: insanProgramsLoading } = useInsanPrograms();
   const insanPrograms = Array.isArray(insanProgramsData) ? insanProgramsData : [];
+  
+  // Fetch fund reports automatically when a fund is selected
+  const { data: fundReportsData, isLoading: fundReportsLoading } = useFundReports({
+    fund_id: selectedFund?.id || undefined,
+    limit: 50
+  });
+  
+  // Process reports data
+  const fundReports = useMemo(() => {
+    if (!fundReportsData?.data) return [];
+    return Array.isArray(fundReportsData.data) ? fundReportsData.data : fundReportsData.data.items || [];
+  }, [fundReportsData]);
 
   // Create Insan partner object (must be before fundWebsite)
   const insanPartner = useMemo(() => {
@@ -746,15 +759,80 @@ export default function PartnersPage() {
 
                  <div className="space-y-4">
                    <h3 className="font-bold text-lg">Документы</h3>
-                   <div className="p-4 border rounded-xl flex items-center gap-3 hover:bg-slate-50 cursor-pointer transition-colors">
-                     <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center text-red-500">
-                       <FileText className="w-5 h-5" />
+                   <p className="text-xs text-muted-foreground -mt-2">Публикуемые отчеты фонда</p>
+                   
+                   {fundReportsLoading ? (
+                     <LoadingState size="sm" text="Загрузка отчетов..." />
+                   ) : fundReports.length > 0 ? (
+                     <div className="space-y-3">
+                       {fundReports.map((report: any) => {
+                         // Format file size
+                         const formatFileSize = (bytes: number) => {
+                           if (!bytes) return '';
+                           if (bytes < 1024) return `${bytes} B`;
+                           if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+                           return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+                         };
+                         
+                         // Format date
+                         const formatDate = (dateString: string) => {
+                           if (!dateString) return '';
+                           try {
+                             const date = new Date(dateString);
+                             return date.toLocaleDateString('ru-RU', { 
+                               day: 'numeric', 
+                               month: 'short', 
+                               year: 'numeric' 
+                             });
+                           } catch {
+                             return dateString;
+                           }
+                         };
+                         
+                         const fileSize = report.file_size || report.size || 0;
+                         const publishDate = report.published_at || report.created_at || report.date;
+                         const fileUrl = report.file_url || report.url || report.download_url;
+                         
+                         return (
+                           <Card 
+                             key={report.id || report.title}
+                             className="border-none shadow-sm hover:shadow-md transition-all cursor-pointer"
+                             onClick={() => {
+                               if (fileUrl) {
+                                 window.open(fileUrl, '_blank', 'noopener,noreferrer');
+                               }
+                             }}
+                           >
+                             <CardContent className="p-4 flex items-center gap-3">
+                               <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center text-red-500 shrink-0">
+                                 <FileText className="w-5 h-5" />
+                               </div>
+                               <div className="flex-1 min-w-0">
+                                 <p className="font-medium text-sm truncate">{report.title || report.name || 'Отчет'}</p>
+                                 {report.description && (
+                                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{report.description}</p>
+                                 )}
+                                 <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                                   {fileSize > 0 && <span>{formatFileSize(fileSize)}</span>}
+                                   {fileSize > 0 && publishDate && <span>•</span>}
+                                   {publishDate && <span>{formatDate(publishDate)}</span>}
+                                 </div>
+                               </div>
+                               {fileUrl && (
+                                 <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
+                               )}
+                             </CardContent>
+                           </Card>
+                         );
+                       })}
                      </div>
-                     <div className="flex-1">
-                       <p className="font-medium text-sm">Годовой отчет 2024.pdf</p>
-                       <p className="text-xs text-muted-foreground">2.4 MB • 15 янв 2025</p>
-                     </div>
-                   </div>
+                   ) : (
+                     <EmptyState
+                       icon={FileText}
+                       title="Отчеты пока не опубликованы"
+                       description="Отчеты фонда будут автоматически отображаться здесь после публикации"
+                     />
+                   )}
                  </div>
                </div>
             )}
