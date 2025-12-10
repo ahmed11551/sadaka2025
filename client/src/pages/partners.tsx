@@ -110,6 +110,33 @@ export default function PartnersPage() {
     if (!fundReportsData?.data) return [];
     return Array.isArray(fundReportsData.data) ? fundReportsData.data : fundReportsData.data.items || [];
   }, [fundReportsData]);
+  
+  // Prepare fund statistics data (automatically pulled from API)
+  const fundStats = useMemo(() => {
+    // For Insan fund, use programs count as project count
+    if (isInsanPartner) {
+      return {
+        totalHelped: partnerDetails?.data?.totalHelped || 0,
+        countries: partnerDetails?.data?.country || 'ru',
+        projectCount: insanPrograms.length || 0, // Use actual programs count from API
+        foundedYear: partnerDetails?.data?.foundedYear || null,
+        totalDonors: partnerDetails?.data?.totalDonors || 0,
+        totalCollected: partnerDetails?.data?.totalCollected || 0,
+        description: insanPartner?.description || partnerDetails?.data?.description || selectedFund?.description || ''
+      };
+    }
+    
+    // For other funds, use partnerDetails from API
+    return {
+      totalHelped: partnerDetails?.data?.totalHelped || 0,
+      countries: partnerDetails?.data?.country || '-',
+      projectCount: partnerDetails?.data?.projectCount || partnerCampaignsData?.data?.items?.length || 0,
+      foundedYear: partnerDetails?.data?.foundedYear || null,
+      totalDonors: partnerDetails?.data?.totalDonors || 0,
+      totalCollected: partnerDetails?.data?.totalCollected || 0,
+      description: partnerDetails?.data?.description || selectedFund?.description || ''
+    };
+  }, [isInsanPartner, partnerDetails, insanPartner, insanPrograms, partnerCampaignsData, selectedFund]);
 
   // Create Insan partner object (must be before fundWebsite)
   const insanPartner = useMemo(() => {
@@ -427,10 +454,10 @@ export default function PartnersPage() {
             {activeTab === "about" && (
               <div className="space-y-6">
                 <div className="space-y-4">
-                  <h3 className="font-bold text-lg">О {selectedFund?.name || 'фонде'}</h3>
-                  {selectedFund?.description && (
+                  <h3 className="font-bold text-lg">О {selectedFund?.name || partnerDetails?.data?.name || insanPartner?.name || 'фонде'}</h3>
+                  {fundStats.description && (
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      {selectedFund.description}
+                      {fundStats.description}
                     </p>
                   )}
                 </div>
@@ -440,10 +467,26 @@ export default function PartnersPage() {
                   <h3 className="font-bold text-lg">Наше влияние</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { label: "Людей помогли", value: partnerDetails?.data?.totalHelped || 0, icon: Users },
-                      { label: "Стран", value: partnerDetails?.data?.country || '-', icon: MapPin },
-                      { label: "Проектов", value: partnerDetails?.data?.projectCount || 0, icon: Layout },
-                      { label: "Лет работы", value: partnerDetails?.data?.foundedYear ? new Date().getFullYear() - partnerDetails.data.foundedYear : '-', icon: Calendar },
+                      { 
+                        label: "Людей помогли", 
+                        value: fundStats.totalHelped > 0 ? fundStats.totalHelped.toLocaleString() : '-', 
+                        icon: Users 
+                      },
+                      { 
+                        label: "Стран", 
+                        value: fundStats.countries !== '-' ? fundStats.countries : '-', 
+                        icon: MapPin 
+                      },
+                      { 
+                        label: "Проектов", 
+                        value: fundStats.projectCount > 0 ? fundStats.projectCount : '-', 
+                        icon: Layout 
+                      },
+                      { 
+                        label: "Лет работы", 
+                        value: fundStats.foundedYear ? new Date().getFullYear() - fundStats.foundedYear : '-', 
+                        icon: Calendar 
+                      },
                     ].map((stat, i) => (
                       <div key={i} className="bg-slate-50 dark:bg-slate-900 rounded-xl p-4 text-center flex flex-col items-center gap-1">
                         <span className="text-2xl font-bold text-[#3E5F43]">{stat.value}</span>
@@ -459,7 +502,12 @@ export default function PartnersPage() {
                         <Users className="w-5 h-5 text-muted-foreground" />
                         <div>
                           <p className="font-bold text-sm">Наши доноры</p>
-                          <p className="text-xs text-muted-foreground">450 активных доноров</p>
+                          <p className="text-xs text-muted-foreground">
+                            {fundStats.totalDonors > 0 
+                              ? `${fundStats.totalDonors.toLocaleString()} активных доноров`
+                              : 'Данные о донорах загружаются...'
+                            }
+                          </p>
                         </div>
                       </div>
                       <Button variant="ghost" size="sm" className="text-xs" onClick={() => setActiveTab("donors")}>Показать</Button>
@@ -731,25 +779,40 @@ export default function PartnersPage() {
                      <Card className="border-none bg-[#F9FAF9] shadow-none">
                        <CardContent className="p-4 py-5">
                          <p className="text-xs text-muted-foreground mb-1">Всего собрано</p>
-                         <p className="text-xl font-bold text-[#3E5F43]">0 ₽</p>
+                         <p className="text-xl font-bold text-[#3E5F43]">
+                           {fundStats.totalCollected > 0 
+                             ? `${(fundStats.totalCollected / 1000000).toFixed(1)}M ₽`
+                             : fundStats.totalCollected > 0
+                             ? `${fundStats.totalCollected.toLocaleString()} ₽`
+                             : '0 ₽'
+                           }
+                         </p>
                        </CardContent>
                      </Card>
                      <Card className="border-none bg-[#F9FAF9] shadow-none">
                        <CardContent className="p-4 py-5">
                          <p className="text-xs text-muted-foreground mb-1">Доноров</p>
-                         <p className="text-xl font-bold text-[#3E5F43]">0</p>
+                         <p className="text-xl font-bold text-[#3E5F43]">
+                           {fundStats.totalDonors > 0 ? fundStats.totalDonors.toLocaleString() : '0'}
+                         </p>
                        </CardContent>
                      </Card>
                      <Card className="border-none bg-[#F9FAF9] shadow-none">
                        <CardContent className="p-4 py-5">
                          <p className="text-xs text-muted-foreground mb-1">Проектов</p>
-                         <p className="text-xl font-bold text-[#3E5F43]">13</p>
+                         <p className="text-xl font-bold text-[#3E5F43]">
+                           {fundStats.projectCount > 0 ? fundStats.projectCount : '0'}
+                         </p>
                        </CardContent>
                      </Card>
                      <Card className="border-none bg-[#F9FAF9] shadow-none">
                        <CardContent className="p-4 py-5">
                          <p className="text-xs text-muted-foreground mb-1">Активных кампаний</p>
-                         <p className="text-xl font-bold text-[#3E5F43]">0</p>
+                         <p className="text-xl font-bold text-[#3E5F43]">
+                           {partnerCampaignsData?.data?.items?.length || 
+                            (isInsanPartner ? insanPrograms.length : 0) || 
+                            '0'}
+                         </p>
                        </CardContent>
                      </Card>
                    </div>
