@@ -111,7 +111,43 @@ export default function PartnersPage() {
     return Array.isArray(fundReportsData.data) ? fundReportsData.data : fundReportsData.data.items || [];
   }, [fundReportsData]);
   
-  // Prepare fund statistics data (automatically pulled from API)
+  // Create Insan partner object (MUST be before isInsanPartner and fundStats)
+  const insanPartner = useMemo(() => {
+    if (insanPrograms.length === 0) return null;
+    return {
+      id: 'insan',
+      slug: 'insan',
+      name: 'Фонд Инсан',
+      nameAr: 'صندوق إنسان',
+      description: 'Благотворительный фонд "Инсан" - один из ведущих фондов России, помогающий нуждающимся, сиротам, больным и пострадавшим.',
+      country: 'ru',
+      city: 'mah',
+      verified: true,
+      logo: 'https://fondinsan.ru/uploads/cache/Programs/Program16/78e1622e63-2_400x400.jpg',
+      website: 'https://fondinsan.ru',
+      type: 'Благотворительный фонд',
+      categories: ['Закят', 'Садака', 'Помощь нуждающимся'],
+      isInsan: true,
+      programsCount: insanPrograms.length
+    };
+  }, [insanPrograms]);
+
+  // Check if selected partner is Insan (MUST be before fundStats)
+  const isInsanPartner = useMemo(() => {
+    const fundName = (selectedFund?.name || partnerDetails?.data?.name || '').toLowerCase();
+    const fundSlug = (selectedFund?.slug || partnerDetails?.data?.slug || '').toLowerCase();
+    const fundId = (selectedFund?.id || '').toLowerCase();
+    
+    return (
+      fundSlug === 'insan' || 
+      fundId === 'insan' ||
+      fundName.includes('инсан') ||
+      fundName.includes('ихсан') ||
+      fundName.includes('insan')
+    );
+  }, [selectedFund, partnerDetails]);
+  
+  // Prepare fund statistics data (automatically pulled from API) - MUST be after isInsanPartner and insanPartner
   const fundStats = useMemo(() => {
     // For Insan fund, use programs count as project count
     if (isInsanPartner) {
@@ -137,42 +173,6 @@ export default function PartnersPage() {
       description: partnerDetails?.data?.description || selectedFund?.description || ''
     };
   }, [isInsanPartner, partnerDetails, insanPartner, insanPrograms, partnerCampaignsData, selectedFund]);
-
-  // Create Insan partner object (must be before fundWebsite)
-  const insanPartner = useMemo(() => {
-    if (insanPrograms.length === 0) return null;
-    return {
-      id: 'insan',
-      slug: 'insan',
-      name: 'Фонд Инсан',
-      nameAr: 'صندوق إنسان',
-      description: 'Благотворительный фонд "Инсан" - один из ведущих фондов России, помогающий нуждающимся, сиротам, больным и пострадавшим.',
-      country: 'ru',
-      city: 'mah',
-      verified: true,
-      logo: 'https://fondinsan.ru/uploads/cache/Programs/Program16/78e1622e63-2_400x400.jpg',
-      website: 'https://fondinsan.ru',
-      type: 'Благотворительный фонд',
-      categories: ['Закят', 'Садака', 'Помощь нуждающимся'],
-      isInsan: true,
-      programsCount: insanPrograms.length
-    };
-  }, [insanPrograms]);
-
-  // Check if selected partner is Insan (by slug or id or name)
-  const isInsanPartner = useMemo(() => {
-    const fundName = (selectedFund?.name || partnerDetails?.data?.name || '').toLowerCase();
-    const fundSlug = (selectedFund?.slug || partnerDetails?.data?.slug || '').toLowerCase();
-    const fundId = (selectedFund?.id || '').toLowerCase();
-    
-    return (
-      fundSlug === 'insan' || 
-      fundId === 'insan' ||
-      fundName.includes('инсан') ||
-      fundName.includes('ихсан') ||
-      fundName.includes('insan')
-    );
-  }, [selectedFund, partnerDetails]);
   
   // Get website URL for selected fund
   const fundWebsite = useMemo(() => {
