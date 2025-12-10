@@ -84,7 +84,7 @@ function AppRouter() {
         <Route path="/profile">
           <Layout>
             <ErrorBoundary>
-              <ProfilePage />
+                <ProfilePage />
             </ErrorBoundary>
           </Layout>
         </Route>
@@ -108,10 +108,10 @@ function AppRouter() {
 function App() {
   return (
     <Router>
-      <QueryClientProvider client={queryClient}>
-        <Toaster />
+    <QueryClientProvider client={queryClient}>
+      <Toaster />
         <AppRouter />
-      </QueryClientProvider>
+    </QueryClientProvider>
     </Router>
   );
 }

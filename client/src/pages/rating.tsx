@@ -51,39 +51,39 @@ export default function RatingPage() {
       {isLoading ? (
         <LoadingState text="Загрузка статистики..." />
       ) : (
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="border-none shadow-sm bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
-            <CardContent className="p-4 flex flex-col justify-between h-24">
-              <div className="flex justify-between items-start">
-                <TrendingUp className="w-5 h-5 opacity-80" />
-                <Badge variant="secondary" className="bg-white/20 text-white border-none hover:bg-white/30 text-[10px] px-1.5">+12%</Badge>
-              </div>
-              <div>
+      <div className="grid grid-cols-2 gap-3">
+         <Card className="border-none shadow-sm bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+           <CardContent className="p-4 flex flex-col justify-between h-24">
+             <div className="flex justify-between items-start">
+               <TrendingUp className="w-5 h-5 opacity-80" />
+               <Badge variant="secondary" className="bg-white/20 text-white border-none hover:bg-white/30 text-[10px] px-1.5">+12%</Badge>
+             </div>
+             <div>
                 <p className="text-2xl font-bold">
                   {stats?.totalCollected 
                     ? `${(stats.totalCollected / 1000000).toFixed(1)}M ₽`
                     : '12.5M ₽'}
                 </p>
-                <p className="text-xs opacity-80">Собрано всего</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-none shadow-sm bg-white dark:bg-slate-800">
-            <CardContent className="p-4 flex flex-col justify-between h-24">
-              <div className="flex justify-between items-start">
-                <Users className="w-5 h-5 text-primary" />
-                <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <div>
+               <p className="text-xs opacity-80">Собрано всего</p>
+             </div>
+           </CardContent>
+         </Card>
+         
+         <Card className="border-none shadow-sm bg-white dark:bg-slate-800">
+           <CardContent className="p-4 flex flex-col justify-between h-24">
+             <div className="flex justify-between items-start">
+               <Users className="w-5 h-5 text-primary" />
+               <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
+             </div>
+             <div>
                 <p className="text-2xl font-bold text-foreground">
                   {stats?.activeDonors?.toLocaleString() || '1,240'}
                 </p>
-                <p className="text-xs text-muted-foreground">Активных доноров</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+               <p className="text-xs text-muted-foreground">Активных доноров</p>
+             </div>
+           </CardContent>
+         </Card>
+      </div>
       )}
 
       <div className="grid grid-cols-2 gap-3">
@@ -134,14 +134,14 @@ export default function RatingPage() {
           {donorsLoading ? (
             <LoadingState text="Загрузка рейтинга..." />
           ) : topDonors.length > 0 ? (
-            <Card className="border-none shadow-md bg-gradient-to-br from-amber-100 to-orange-50 border-amber-200">
-              <CardContent className="p-6 flex flex-col items-center text-center">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-3">
-                  <Globe className="w-8 h-8 text-amber-500 fill-amber-500" />
-                </div>
-                <h3 className="font-bold text-lg text-amber-900">Мировые лидеры</h3>
-                <p className="text-sm text-amber-800/80 mt-1 mb-4">Топ доноров по всем странам присутствия платформы</p>
-                <div className="w-full space-y-2">
+          <Card className="border-none shadow-md bg-gradient-to-br from-amber-100 to-orange-50 border-amber-200">
+            <CardContent className="p-6 flex flex-col items-center text-center">
+               <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-3">
+                 <Globe className="w-8 h-8 text-amber-500 fill-amber-500" />
+               </div>
+               <h3 className="font-bold text-lg text-amber-900">Мировые лидеры</h3>
+               <p className="text-sm text-amber-800/80 mt-1 mb-4">Топ доноров по всем странам присутствия платформы</p>
+               <div className="w-full space-y-2">
                   {topDonors.slice(0, 3).map((donor, i) => (
                     <div key={donor.id} className="bg-white/60 rounded-lg p-3 flex items-center gap-3">
                       <span className="font-bold text-amber-600 w-4">{i + 1}</span>
@@ -149,14 +149,14 @@ export default function RatingPage() {
                         {donor.country.toUpperCase()}
                       </div>
                       <div className="flex-1 text-left">
-                        <p className="font-bold text-sm text-amber-900">{donor.name}</p>
-                        <p className="text-xs text-amber-800">{donor.amount.toLocaleString()} ₽</p>
+                         <p className="font-bold text-sm text-amber-900">{donor.name}</p>
+                         <p className="text-xs text-amber-800">{donor.amount.toLocaleString()} ₽</p>
                       </div>
                     </div>
                   ))}
-                </div>
-              </CardContent>
-            </Card>
+               </div>
+            </CardContent>
+          </Card>
           ) : (
             <EmptyState
               icon={Trophy}
@@ -205,7 +205,7 @@ export default function RatingPage() {
 
       {activeTab === "top_collections" && (
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground px-1">Самые масштабные сборы платформы</p>
+           <p className="text-sm text-muted-foreground px-1">Самые масштабные сборы платформы</p>
           {topCampaignsLoading ? (
             <LoadingState text="Загрузка топ сборов..." />
           ) : topCampaigns.length > 0 ? (
@@ -244,7 +244,7 @@ export default function RatingPage() {
 
       {activeTab === "top_collections_country" && (
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground px-1">Завершенные сборы в вашей стране</p>
+           <p className="text-sm text-muted-foreground px-1">Завершенные сборы в вашей стране</p>
           {completedLoading ? (
             <LoadingState text="Загрузка завершенных сборов..." />
           ) : completedCampaigns.length > 0 ? (

@@ -133,7 +133,7 @@ export default function PartnersPage() {
       fundName.includes('insan')
     );
   }, [selectedFund, partnerDetails]);
-
+  
   // Get website URL for selected fund
   const fundWebsite = useMemo(() => {
     // Always prioritize selectedFund website if available

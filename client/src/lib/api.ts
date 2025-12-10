@@ -1,7 +1,7 @@
 // API Configuration
 // All requests go through server proxy to avoid CORS issues
 // Server proxy will forward to bot.e-replika.ru/api/v1 with test_token_123
-const API_BASE_URL = typeof window !== 'undefined' 
+const API_BASE_URL = typeof window !== 'undefined'
   ? '/api'  // Use server proxy in browser
   : 'https://bot.e-replika.ru/api';  // Direct in SSR
 const API_TOKEN = 'test_token_123';  // Not used when going through proxy

@@ -245,7 +245,7 @@ export default function HomePage() {
   const fundsByCountry = useMemo(() => {
     const apiPartners: any[] = [];
     if (partnersData?.data) {
-      const partners = Array.isArray(partnersData.data) ? partnersData.data : partnersData.data.items || [];
+    const partners = Array.isArray(partnersData.data) ? partnersData.data : partnersData.data.items || [];
       apiPartners.push(...partners);
     }
     

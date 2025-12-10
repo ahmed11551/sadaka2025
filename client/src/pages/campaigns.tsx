@@ -82,12 +82,12 @@ export default function CampaignsPage() {
   const partners = useMemo(() => {
     const apiPartners: any[] = [];
     if (partnersData?.data) {
-      const data = partnersData.data;
-      if (Array.isArray(data)) {
+    const data = partnersData.data;
+    if (Array.isArray(data)) {
         apiPartners.push(...data.filter((p: any) => p && p.id && p.verified));
       } else if (data && typeof data === 'object' && 'items' in data) {
         apiPartners.push(...(Array.isArray(data.items) ? data.items.filter((p: any) => p && p.id && p.verified) : []));
-      }
+    }
     }
     
     // Add Insan fund if programs are loaded and it's not already in the list
@@ -214,7 +214,11 @@ export default function CampaignsPage() {
       },
       url: program.url,
       insanProgramId: program.id,
-      isInsanProgram: true
+      isInsanProgram: true,
+      // Добавляем поля для отображения в карточках
+      participantCount: 0, // Будет подтягиваться из API при наличии
+      urgent: false, // Можно добавить логику определения срочности
+      deadline: null // Можно добавить дедлайн если есть в API
     }));
 
     // Combine API campaigns and Insan programs
@@ -588,7 +592,8 @@ export default function CampaignsPage() {
                       <MessageCircle className="w-4 h-4" />
                     </Button>
                   </div>
-                  <div className="absolute top-2 right-2 flex gap-2">
+                  {/* Badges: Срочно и категория вверху справа */}
+                  <div className="absolute top-2 right-2 flex gap-2 z-10">
                     {campaign.urgent && (
                       <Badge variant="destructive" className="bg-red-500 text-white shadow-sm animate-pulse">
                         Срочно
@@ -600,13 +605,17 @@ export default function CampaignsPage() {
                     </Badge>
                         )}
                   </div>
-                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
-                        {campaign.partner && campaign.partner.id && campaign.partner.name && (
-                          <Link href={`/partners/${campaign.partner.id}`} onClick={(e) => e.stopPropagation()}>
-                            <p className="text-white text-xs font-medium hover:underline cursor-pointer inline-block">{campaign.partner.name}</p>
-                     </Link>
-                        )}
-                  </div>
+                  
+                  {/* Название фонда в белом прямоугольнике с красной рамкой внизу слева */}
+                  {campaign.partner && campaign.partner.id && campaign.partner.name && (
+                    <div className="absolute bottom-2 left-2 z-10">
+                      <Link href={`/partners/${campaign.partner.id}`} onClick={(e) => e.stopPropagation()}>
+                        <div className="bg-white border-2 border-red-500 rounded px-2 py-1 shadow-md hover:bg-red-50 transition-colors">
+                          <p className="text-xs font-semibold text-foreground cursor-pointer">{campaign.partner.name}</p>
+                        </div>
+                      </Link>
+                    </div>
+                  )}
                 </div>
                 <CardContent className="p-4 space-y-4">
                   <div>
@@ -1334,7 +1343,8 @@ export default function CampaignsPage() {
                           <HeartIcon className="w-4 h-4 fill-current" />
                         </Button>
                       </div>
-                      <div className="absolute top-2 right-2 flex gap-2">
+                      {/* Badges: Срочно и категория вверху справа */}
+                      <div className="absolute top-2 right-2 flex gap-2 z-10">
                         {campaign.urgent && (
                           <Badge variant="destructive" className="bg-red-500 text-white shadow-sm animate-pulse">
                             Срочно
@@ -1344,6 +1354,17 @@ export default function CampaignsPage() {
                           {campaign.category}
                         </Badge>
                       </div>
+                      
+                      {/* Название фонда в белом прямоугольнике с красной рамкой внизу слева */}
+                      {campaign.partner && campaign.partner.id && campaign.partner.name && (
+                        <div className="absolute bottom-2 left-2 z-10">
+                          <Link href={`/partners/${campaign.partner.id}`} onClick={(e) => e.stopPropagation()}>
+                            <div className="bg-white border-2 border-red-500 rounded px-2 py-1 shadow-md hover:bg-red-50 transition-colors">
+                              <p className="text-xs font-semibold text-foreground cursor-pointer">{campaign.partner.name}</p>
+                            </div>
+                          </Link>
+                        </div>
+                      )}
                     </div>
                     <CardContent className="p-4 space-y-4">
                       <div>
