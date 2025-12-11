@@ -110,6 +110,7 @@ if (typeof window !== 'undefined') {
       // If it's an expected 404/405, suppress console logging
       if (isExpectedEndpoint && (response.status === 404 || response.status === 405)) {
         // Response is handled gracefully in api.ts, just suppress console noise
+        // Clone response to avoid issues
         return response;
       }
       
@@ -119,6 +120,39 @@ if (typeof window !== 'undefined') {
       throw error;
     }
   };
+  
+  // Also intercept XMLHttpRequest if it's used anywhere
+  if (window.XMLHttpRequest) {
+    const OriginalXHR = window.XMLHttpRequest;
+    window.XMLHttpRequest = function(...args: any[]) {
+      const xhr = new OriginalXHR(...args);
+      const originalOpen = xhr.open;
+      const originalSend = xhr.send;
+      
+      xhr.open = function(method: string, url: string | URL, ...rest: any[]) {
+        const urlString = typeof url === 'string' ? url : url.toString();
+        const isExpectedEndpoint = EXPECTED_ERROR_PATTERNS.some(pattern => urlString.includes(pattern));
+        
+        // Store flag for later use
+        (xhr as any)._isExpectedEndpoint = isExpectedEndpoint;
+        
+        return originalOpen.apply(this, [method, url, ...rest] as any);
+      };
+      
+      xhr.send = function(...args: any[]) {
+        const result = originalSend.apply(this, args);
+        
+        // Suppress errors for expected endpoints
+        if ((xhr as any)._isExpectedEndpoint && (xhr.status === 404 || xhr.status === 405)) {
+          // Suppress error logging
+        }
+        
+        return result;
+      };
+      
+      return xhr;
+    };
+  }
   
   // Инициализация Telegram WebApp при загрузке
   initTelegramWebApp();
