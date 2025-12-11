@@ -5,7 +5,7 @@ import { initTelegramWebApp } from "./lib/telegram";
 
 // Suppress expected 404/405 errors in console (endpoints not implemented in API)
 if (typeof window !== 'undefined') {
-  // List of endpoints that are expected to return 404 or 405
+  // List of endpoints that are expected to return 404 or 405 (not implemented in API)
   const EXPECTED_ERROR_PATTERNS = [
     '/api/auth/me',
     '/api/auth/profile',
@@ -18,7 +18,13 @@ if (typeof window !== 'undefined') {
     '/api/favorites',
     '/api/comments',
     '/api/donations',
+    '/api/donations/my',
+    '/api/donations/stats',
     '/api/rating/',
+    '/api/rating/stats',
+    '/api/rating/donors',
+    '/api/rating/top-campaigns',
+    '/api/rating/completed-campaigns',
   ];
   
   // Function to check if error should be suppressed
@@ -43,7 +49,7 @@ if (typeof window !== 'undefined') {
   // Override console.error to filter out expected 404s/405s
   const originalConsoleError = console.error;
   console.error = (...args: any[]) => {
-    const errorString = args.join(' ');
+    const errorString = args.join(' ') || String(args[0] || '');
     if (shouldSuppressError(errorString)) {
       // Suppress this error - it's expected and handled gracefully
       return;
@@ -55,11 +61,24 @@ if (typeof window !== 'undefined') {
   // Also filter network errors in console.warn
   const originalConsoleWarn = console.warn;
   console.warn = (...args: any[]) => {
-    const warnString = args.join(' ');
+    const warnString = args.join(' ') || String(args[0] || '');
     if (shouldSuppressError(warnString)) {
       return;
     }
     originalConsoleWarn.apply(console, args);
+  };
+  
+  // Also filter console.log for network errors (some browsers log 404 there)
+  const originalConsoleLog = console.log;
+  console.log = (...args: any[]) => {
+    const logString = args.join(' ') || String(args[0] || '');
+    // Only suppress if it's clearly a 404/405 network error
+    if (logString.includes('404') || logString.includes('405')) {
+      if (shouldSuppressError(logString)) {
+        return;
+      }
+    }
+    originalConsoleLog.apply(console, args);
   };
   
   // Intercept unhandled promise rejections that might contain 404/405
