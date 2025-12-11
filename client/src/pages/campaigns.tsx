@@ -573,7 +573,8 @@ export default function CampaignsPage() {
                         alt={campaign.title || 'Кампания'} 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-100 z-10">
+                  {/* Иконки избранного и комментариев вверху справа */}
+                  <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-100 z-20">
                     <Button 
                       size="icon" 
                       variant="secondary" 
@@ -592,8 +593,9 @@ export default function CampaignsPage() {
                       <MessageCircle className="w-4 h-4" />
                     </Button>
                   </div>
-                  {/* Badges: Срочно и категория вверху справа */}
-                  <div className="absolute top-2 right-2 flex gap-2 z-10">
+                  
+                  {/* Badges: Срочно и категория вверху справа (под иконками) */}
+                  <div className="absolute top-12 right-2 flex gap-2 z-10">
                     {campaign.urgent && (
                       <Badge variant="destructive" className="bg-red-500 text-white shadow-sm animate-pulse">
                         Срочно
@@ -608,10 +610,10 @@ export default function CampaignsPage() {
                   
                   {/* Название фонда в белом прямоугольнике с красной рамкой внизу слева */}
                   {campaign.partner && campaign.partner.id && campaign.partner.name && (
-                    <div className="absolute bottom-2 left-2 z-10">
+                    <div className="absolute bottom-2 left-2 z-10 max-w-[calc(100%-5rem)]">
                       <Link href={`/partners/${campaign.partner.id}`} onClick={(e) => e.stopPropagation()}>
-                        <div className="bg-white border-2 border-red-500 rounded px-2 py-1 shadow-md hover:bg-red-50 transition-colors">
-                          <p className="text-xs font-semibold text-foreground cursor-pointer">{campaign.partner.name}</p>
+                        <div className="bg-white border-2 border-red-500 rounded px-2 py-1 shadow-md hover:bg-red-50 transition-colors max-w-full">
+                          <p className="text-xs font-semibold text-foreground cursor-pointer truncate whitespace-nowrap">{campaign.partner.name}</p>
                         </div>
                       </Link>
                     </div>
@@ -1330,7 +1332,8 @@ export default function CampaignsPage() {
                         alt={campaign.title} 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
-                      <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-100 transition-opacity z-10">
+                      {/* Иконки избранного вверху справа */}
+                      <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-100 transition-opacity z-20">
                         <Button 
                           size="icon" 
                           variant="secondary" 
@@ -1343,8 +1346,9 @@ export default function CampaignsPage() {
                           <HeartIcon className="w-4 h-4 fill-current" />
                         </Button>
                       </div>
-                      {/* Badges: Срочно и категория вверху справа */}
-                      <div className="absolute top-2 right-2 flex gap-2 z-10">
+                      
+                      {/* Badges: Срочно и категория вверху справа (под иконками) */}
+                      <div className="absolute top-12 right-2 flex gap-2 z-10">
                         {campaign.urgent && (
                           <Badge variant="destructive" className="bg-red-500 text-white shadow-sm animate-pulse">
                             Срочно
@@ -1357,10 +1361,10 @@ export default function CampaignsPage() {
                       
                       {/* Название фонда в белом прямоугольнике с красной рамкой внизу слева */}
                       {campaign.partner && campaign.partner.id && campaign.partner.name && (
-                        <div className="absolute bottom-2 left-2 z-10">
+                        <div className="absolute bottom-2 left-2 z-10 max-w-[calc(100%-5rem)]">
                           <Link href={`/partners/${campaign.partner.id}`} onClick={(e) => e.stopPropagation()}>
-                            <div className="bg-white border-2 border-red-500 rounded px-2 py-1 shadow-md hover:bg-red-50 transition-colors">
-                              <p className="text-xs font-semibold text-foreground cursor-pointer">{campaign.partner.name}</p>
+                            <div className="bg-white border-2 border-red-500 rounded px-2 py-1 shadow-md hover:bg-red-50 transition-colors max-w-full">
+                              <p className="text-xs font-semibold text-foreground cursor-pointer truncate whitespace-nowrap">{campaign.partner.name}</p>
                             </div>
                           </Link>
                         </div>
