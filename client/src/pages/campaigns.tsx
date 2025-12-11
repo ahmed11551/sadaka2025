@@ -607,6 +607,17 @@ export default function CampaignsPage() {
                     </Badge>
                         )}
                   </div>
+                  
+                  {/* Название фонда в белом прямоугольнике с красной рамкой внизу слева */}
+                  {campaign.partner && campaign.partner.id && campaign.partner.name && (
+                    <div className="absolute bottom-2 left-2 z-10 max-w-[calc(100%-5rem)]">
+                      <Link href={`/partners/${campaign.partner.id}`} onClick={(e) => e.stopPropagation()}>
+                        <div className="bg-white border-2 border-red-500 rounded px-2 py-1 shadow-md hover:bg-red-50 transition-colors max-w-full">
+                          <p className="text-xs font-semibold text-foreground cursor-pointer truncate whitespace-nowrap">{campaign.partner.name}</p>
+                        </div>
+                      </Link>
+                    </div>
+                  )}
                 </div>
                 <CardContent className="p-4 space-y-4">
                   <div>
@@ -1347,6 +1358,17 @@ export default function CampaignsPage() {
                           {campaign.category}
                         </Badge>
                       </div>
+                      
+                      {/* Название фонда в белом прямоугольнике с красной рамкой внизу слева */}
+                      {campaign.partner && campaign.partner.id && campaign.partner.name && (
+                        <div className="absolute bottom-2 left-2 z-10 max-w-[calc(100%-5rem)]">
+                          <Link href={`/partners/${campaign.partner.id}`} onClick={(e) => e.stopPropagation()}>
+                            <div className="bg-white border-2 border-red-500 rounded px-2 py-1 shadow-md hover:bg-red-50 transition-colors max-w-full">
+                              <p className="text-xs font-semibold text-foreground cursor-pointer truncate whitespace-nowrap">{campaign.partner.name}</p>
+                            </div>
+                          </Link>
+                        </div>
+                      )}
                     </div>
                     <CardContent className="p-4 space-y-4">
                       <div>
