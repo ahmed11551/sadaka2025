@@ -37,6 +37,27 @@ function getErrorMessage(status: number, defaultMessage?: string): string {
   return ERROR_MESSAGES[status] || defaultMessage || 'Произошла ошибка. Попробуйте позже.';
 }
 
+// List of endpoints that are expected to return 404 (not implemented in API)
+// These are handled gracefully and don't need to clutter the console
+const EXPECTED_404_ENDPOINTS = [
+  '/auth/me',
+  '/auth/profile',
+  '/partners',
+  '/campaigns',
+  '/subscriptions',
+  '/history',
+  '/reports',
+  '/favorites',
+  '/comments',
+  '/donations',
+  '/rating/',
+];
+
+// Check if endpoint is expected to return 404
+function isExpected404(endpoint: string): boolean {
+  return EXPECTED_404_ENDPOINTS.some(expected => endpoint.includes(expected));
+}
+
 export async function fetchApi<T>(
   endpoint: string,
   options?: RequestInit
