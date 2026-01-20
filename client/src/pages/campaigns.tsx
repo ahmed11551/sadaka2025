@@ -171,9 +171,6 @@ export default function CampaignsPage() {
     ...(quickFilter === 'urgent' && { urgent: true }),
     limit: 50
   });
-
-  // Fetch Insan programs (for partners dropdown)
-  const { data: insanProgramsForPartners } = useInsanPrograms();
   
   // Fetch Insan active fundraisings (for campaigns display)
   const { data: insanActiveFundraisings, isLoading: insanFundraisingsLoading } = useInsanActiveFundraisings();
