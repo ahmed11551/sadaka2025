@@ -26,7 +26,7 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
 import { LoadingState } from "@/components/loading-state";
 import { usePartners } from "@/hooks/use-partners";
-import { useInsanPrograms } from "@/hooks/use-insan-programs";
+import { useInsanPrograms, useInsanActiveFundraisings } from "@/hooks/use-insan-programs";
 
 // Helper function to format time ago
 function getTimeAgo(date: Date): string {
@@ -172,8 +172,11 @@ export default function CampaignsPage() {
     limit: 50
   });
 
-  // Fetch Insan programs
-  const { data: insanPrograms, isLoading: insanProgramsLoading } = useInsanPrograms();
+  // Fetch Insan programs (for partners dropdown)
+  const { data: insanProgramsForPartners } = useInsanPrograms();
+  
+  // Fetch Insan active fundraisings (for campaigns display)
+  const { data: insanActiveFundraisings, isLoading: insanFundraisingsLoading } = useInsanActiveFundraisings();
 
   const { data: privateCampaignsData, isLoading: privateCampaignsLoading } = useCampaigns({
     type: 'private',
@@ -194,32 +197,45 @@ export default function CampaignsPage() {
       ? (Array.isArray(fundCampaignsData.data) ? fundCampaignsData.data : fundCampaignsData.data.items || [])
       : [];
     
-    // Convert Insan programs to campaign format
-    const insanCampaigns = (insanPrograms || []).map((program: any) => ({
-      id: `insan-${program.id}`,
-      title: program.title,
-      description: program.short || '',
-      fullDescription: program.description || '',
-      image: program.image || '/placeholder-campaign.jpg',
-      category: 'Фонд Инсан',
-      type: 'fund',
-      status: 'active',
-      goal: program.default_amount * 100 || 100000,
-      collected: 0,
-      currency: 'RUB',
-      partner: {
-        id: 'insan',
-        name: 'Фонд Инсан',
-        verified: true
-      },
-      url: program.url,
-      insanProgramId: program.id,
-      isInsanProgram: true,
-      // Добавляем поля для отображения в карточках
-      participantCount: 0, // Будет подтягиваться из API при наличии
-      urgent: false, // Можно добавить логику определения срочности
-      deadline: null // Можно добавить дедлайн если есть в API
-    }));
+    // Convert Insan active fundraisings to campaign format
+    const insanCampaigns = (insanActiveFundraisings || []).map((fundraising: any) => {
+      // Parse collection_closing_date - может быть строкой или null
+      let deadline: string | null = null;
+      if (fundraising.collection_closing_date) {
+        // Если это строка, используем как есть
+        deadline = typeof fundraising.collection_closing_date === 'string' 
+          ? fundraising.collection_closing_date 
+          : null;
+      }
+      
+      return {
+        id: `insan-${fundraising.id}`,
+        title: fundraising.title || 'Без названия',
+        description: fundraising.short || '',
+        fullDescription: fundraising.description || '',
+        image: fundraising.preview || fundraising.og_image || '/placeholder-campaign.jpg',
+        category: fundraising.category_name || 'Фонд Инсан',
+        type: 'fund',
+        status: 'active',
+        goal: Number(fundraising.end_money) || 0,
+        collected: Number(fundraising.collect_money) || 0,
+        currency: 'RUB',
+        partner: {
+          id: 'insan',
+          name: 'Фонд Инсан',
+          verified: true
+        },
+        url: fundraising.url,
+        insanFundraisingId: fundraising.id,
+        isInsanFundraising: true,
+        // Поля для отображения в карточках
+        participantCount: Number(fundraising.number_of_people_helping) || 0,
+        urgent: fundraising.in_priority === 1, // 1 = срочно
+        deadline: deadline,
+        city: fundraising.city || '',
+        defaultAmount: Number(fundraising.default_amount) || 100,
+      };
+    });
 
     // Combine API campaigns and Insan programs
     const allCampaigns = [...apiCampaigns, ...insanCampaigns];
@@ -239,7 +255,7 @@ export default function CampaignsPage() {
       
       return matchesSearch && matchesFilters && matchesQuickFilter;
     });
-  }, [fundCampaignsData, insanPrograms, searchQuery, selectedFilters, quickFilter]);
+  }, [fundCampaignsData, insanActiveFundraisings, searchQuery, selectedFilters, quickFilter]);
 
   const privateCampaigns = useMemo(() => {
     if (!privateCampaignsData?.data) return [];
@@ -548,7 +564,7 @@ export default function CampaignsPage() {
         </div>
 
         <TabsContent value="funds" className="space-y-4 mt-0">
-          {(fundCampaignsLoading || insanProgramsLoading) ? (
+          {(fundCampaignsLoading || insanFundraisingsLoading) ? (
             <LoadingState text="Загрузка кампаний фондов..." />
           ) : fundCampaigns.length > 0 ? (
             <>

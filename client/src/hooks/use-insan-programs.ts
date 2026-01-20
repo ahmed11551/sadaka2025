@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { insanApi, InsanProgram } from '@/lib/insan-api';
+import { insanApi, InsanProgram, InsanFundraising } from '@/lib/insan-api';
 import { handleApiError } from '@/lib/error-handler';
 
 /**
@@ -61,6 +61,39 @@ export function useInsanProgram(id: number | null) {
     throwOnError: false,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
+  });
+}
+
+/**
+ * Hook для получения списка активных сборов фонда Инсан
+ */
+export function useInsanActiveFundraisings() {
+  return useQuery<InsanFundraising[], Error>({
+    queryKey: ['insan', 'active-fundraisings'],
+    queryFn: async () => {
+      try {
+        const fundraisings = await insanApi.getActiveFundraisings();
+        console.log('[useInsanActiveFundraisings] Loaded fundraisings:', fundraisings?.length || 0, fundraisings);
+        return fundraisings || [];
+      } catch (error: any) {
+        // Log error for debugging
+        console.error('[useInsanActiveFundraisings] Error loading Insan active fundraisings:', error);
+        console.error('[useInsanActiveFundraisings] Error details:', {
+          message: error?.message,
+          status: error?.status,
+          details: error?.details,
+        });
+        // Return empty array instead of throwing - graceful degradation
+        return [];
+      }
+    },
+    staleTime: 2 * 60 * 1000, // 2 минуты - активные сборы могут обновляться чаще
+    cacheTime: 5 * 60 * 1000, // 5 минут
+    retry: false,
+    throwOnError: false,
+    refetchOnMount: true, // Загружать при монтировании
+    refetchOnWindowFocus: true, // Обновлять при фокусе окна
+    refetchInterval: 5 * 60 * 1000, // Обновлять каждые 5 минут
   });
 }
 

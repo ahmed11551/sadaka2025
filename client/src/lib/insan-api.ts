@@ -18,6 +18,38 @@ export interface InsanProgram {
   default_amount: number;
 }
 
+export interface InsanFundraising {
+  id: number;
+  title: string;
+  description: string;
+  city: string;
+  location_id: string;
+  category_name: string | null;
+  url: string;
+  short: string;
+  share_text: string;
+  created: string;
+  unixtime: number;
+  done: string;
+  collect_money: number;
+  end_money: number;
+  default_amount: number;
+  default_amount_web: number;
+  collection_closing_date: string | null;
+  name: string;
+  sick: string;
+  finish: number;
+  in_priority: number; // 1 = срочно, 0 = обычный
+  event_participation: boolean;
+  use_of_funds: Array<{ id: string; title: string; iconUrl: string | null }>;
+  files: Array<{ title: string; file: string }>;
+  og_image: string;
+  preview: string;
+  video_url: string;
+  number_of_people_helping: number;
+  images: string[];
+}
+
 export interface InsanApiResponse<T> {
   success: boolean;
   status: number;
@@ -210,6 +242,40 @@ export const insanApi = {
       // Log error but return null for graceful degradation
       console.error(`[Insan API] Error fetching program ${id}:`, error);
       return null;
+    }
+  },
+
+  /**
+   * Получить список активных сборов фонда Инсан
+   */
+  getActiveFundraisings: async (): Promise<InsanFundraising[]> => {
+    try {
+      const response = await fetchInsanApi<{ fundraisings: InsanFundraising[] }>('/help/active');
+      
+      // Debug logging (only in development)
+      if (import.meta.env.DEV) {
+        console.log('[Insan API] Active fundraisings response:', response);
+      }
+      
+      // Check if response has fundraisings field
+      if (response && typeof response === 'object' && 'fundraisings' in response) {
+        return Array.isArray(response.fundraisings) ? response.fundraisings : [];
+      }
+      
+      // If response is directly an array (unexpected but handle gracefully)
+      if (Array.isArray(response)) {
+        console.warn('[Insan API] Response is array instead of object, returning directly');
+        return response;
+      }
+      
+      console.warn('[Insan API] Unexpected response format for active fundraisings:', response);
+      return [];
+    } catch (error) {
+      // Log error but return empty array for graceful degradation
+      console.error('[Insan API] Error fetching active fundraisings:', error);
+      
+      // Return empty array instead of throwing - allows UI to show empty state
+      return [];
     }
   },
 };
