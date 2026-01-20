@@ -65,6 +65,41 @@
           }
           originalConsoleWarn.apply(console, args);
         };
+        
+        // Suppress browser extension errors (Google Translate, etc.)
+        const originalError = window.onerror;
+        window.onerror = function(message, source, lineno, colno, error) {
+          // Suppress Content Security Policy errors from browser extensions
+          if (message && typeof message === 'string' && (
+            message.includes('Content Security Policy') ||
+            message.includes('translate_http') ||
+            message.includes('chrome-extension://') ||
+            message.includes('Could not establish connection')
+          )) {
+            return true; // Suppress error
+          }
+          // Call original error handler if exists
+          if (originalError) {
+            return originalError(message, source, lineno, colno, error);
+          }
+          return false;
+        };
+        
+        // Suppress unhandled promise rejections from extensions
+        window.addEventListener('unhandledrejection', function(event) {
+          const reason = event.reason;
+          if (reason && typeof reason === 'object' && reason.message) {
+            const message = String(reason.message);
+            if (
+              message.includes('Could not establish connection') ||
+              message.includes('Receiving end does not exist') ||
+              message.includes('chrome-extension://')
+            ) {
+              event.preventDefault(); // Suppress error
+              return;
+            }
+          }
+        });
       })();
     </script>
   </head>
