@@ -73,7 +73,12 @@ export function useInsanActiveFundraisings() {
     queryFn: async () => {
       try {
         const fundraisings = await insanApi.getActiveFundraisings();
-        console.log('[useInsanActiveFundraisings] Loaded fundraisings:', fundraisings?.length || 0, fundraisings);
+        if (import.meta.env.DEV) {
+          console.log('[useInsanActiveFundraisings] Loaded fundraisings:', fundraisings?.length || 0);
+          if (fundraisings && fundraisings.length > 0) {
+            console.log('[useInsanActiveFundraisings] First fundraising sample:', fundraisings[0]);
+          }
+        }
         return fundraisings || [];
       } catch (error: any) {
         // Log error for debugging
@@ -81,7 +86,9 @@ export function useInsanActiveFundraisings() {
         console.error('[useInsanActiveFundraisings] Error details:', {
           message: error?.message,
           status: error?.status,
+          name: error?.name,
           details: error?.details,
+          stack: error?.stack,
         });
         // Return empty array instead of throwing - graceful degradation
         return [];
