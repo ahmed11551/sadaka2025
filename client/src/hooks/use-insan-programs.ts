@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { insanApi, InsanProgram, InsanFundraising } from '@/lib/insan-api';
-import { handleApiError } from '@/lib/error-handler';
 
 /**
  * Hook для получения списка всех программ фонда Инсан
@@ -101,6 +100,46 @@ export function useInsanActiveFundraisings() {
     refetchOnMount: true, // Загружать при монтировании
     refetchOnWindowFocus: true, // Обновлять при фокусе окна
     refetchInterval: 5 * 60 * 1000, // Обновлять каждые 5 минут
+  });
+}
+
+/**
+ * Hook для получения списка завершенных сборов фонда Инсан
+ */
+export function useInsanCompletedFundraisings() {
+  return useQuery<InsanFundraising[], Error>({
+    queryKey: ['insan', 'completed-fundraisings'],
+    queryFn: async () => {
+      try {
+        const fundraisings = await insanApi.getCompletedFundraisings();
+        if (import.meta.env.DEV) {
+          console.log('[useInsanCompletedFundraisings] Loaded fundraisings:', fundraisings?.length || 0);
+          if (fundraisings && fundraisings.length > 0) {
+            console.log('[useInsanCompletedFundraisings] First fundraising sample:', fundraisings[0]);
+          }
+        }
+        return fundraisings || [];
+      } catch (error: any) {
+        // Log error for debugging
+        console.error('[useInsanCompletedFundraisings] Error loading Insan completed fundraisings:', error);
+        console.error('[useInsanCompletedFundraisings] Error details:', {
+          message: error?.message,
+          status: error?.status,
+          name: error?.name,
+          details: error?.details,
+          stack: error?.stack,
+        });
+        // Return empty array instead of throwing - graceful degradation
+        return [];
+      }
+    },
+    staleTime: 5 * 60 * 1000, // 5 минут - завершенные сборы обновляются реже
+    cacheTime: 10 * 60 * 1000, // 10 минут
+    retry: false,
+    throwOnError: false,
+    refetchOnMount: true, // Загружать при монтировании
+    refetchOnWindowFocus: false, // Не обновлять при фокусе (завершенные не меняются часто)
+    refetchInterval: 10 * 60 * 1000, // Обновлять каждые 10 минут
   });
 }
 

@@ -306,5 +306,87 @@ export const insanApi = {
       return [];
     }
   },
+
+  /**
+   * Получить список завершенных сборов фонда Инсан
+   */
+  getCompletedFundraisings: async (): Promise<InsanFundraising[]> => {
+    try {
+      // Попробуем разные варианты эндпоинтов
+      let response: any;
+      let endpoint = '/help/completed';
+      
+      try {
+        response = await fetchInsanApi<any>(endpoint);
+      } catch (error: any) {
+        // Если /help/completed не работает, попробуем /help/finished
+        if (error.status === 404) {
+          endpoint = '/help/finished';
+          try {
+            response = await fetchInsanApi<any>(endpoint);
+          } catch (error2: any) {
+            // Если и это не работает, вернем пустой массив
+            console.warn('[Insan API] No endpoint for completed fundraisings found, returning empty array');
+            return [];
+          }
+        } else {
+          throw error;
+        }
+      }
+      
+      // Debug logging (only in development)
+      if (import.meta.env.DEV) {
+        console.log('[Insan API] Completed fundraisings raw response:', response);
+      }
+      
+      // Check if response has fundraisings field (expected format: { fundraisings: [...] })
+      if (response && typeof response === 'object') {
+        if ('fundraisings' in response) {
+          const fundraisings = response.fundraisings;
+          if (Array.isArray(fundraisings)) {
+            if (import.meta.env.DEV) {
+              console.log(`[Insan API] Successfully parsed ${fundraisings.length} completed fundraisings`);
+            }
+            return fundraisings;
+          } else {
+            console.warn('[Insan API] Response.fundraisings is not an array:', typeof fundraisings, fundraisings);
+            return [];
+          }
+        }
+        
+        // If response is directly an array (unexpected but handle gracefully)
+        if (Array.isArray(response)) {
+          console.warn('[Insan API] Response is array instead of object, returning directly');
+          return response;
+        }
+        
+        // Check if response has data field (alternative format)
+        if ('data' in response && Array.isArray(response.data)) {
+          console.warn('[Insan API] Response has data field instead of fundraisings, using data');
+          return response.data;
+        }
+      }
+      
+      console.warn('[Insan API] Unexpected response format for completed fundraisings:', {
+        type: typeof response,
+        isArray: Array.isArray(response),
+        keys: response && typeof response === 'object' ? Object.keys(response) : null,
+        response
+      });
+      return [];
+    } catch (error: any) {
+      // Log error with details for debugging
+      console.error('[Insan API] Error fetching completed fundraisings:', {
+        message: error?.message,
+        status: error?.status,
+        name: error?.name,
+        details: error?.details,
+        error
+      });
+      
+      // Return empty array instead of throwing - allows UI to show empty state
+      return [];
+    }
+  },
 };
 

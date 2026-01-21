@@ -26,7 +26,7 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
 import { LoadingState } from "@/components/loading-state";
 import { usePartners } from "@/hooks/use-partners";
-import { useInsanPrograms, useInsanActiveFundraisings } from "@/hooks/use-insan-programs";
+import { useInsanPrograms, useInsanActiveFundraisings, useInsanCompletedFundraisings } from "@/hooks/use-insan-programs";
 
 // Helper function to format time ago
 function getTimeAgo(date: Date): string {
@@ -174,6 +174,9 @@ export default function CampaignsPage() {
   
   // Fetch Insan active fundraisings (for campaigns display)
   const { data: insanActiveFundraisings, isLoading: insanFundraisingsLoading } = useInsanActiveFundraisings();
+  
+  // Fetch Insan completed fundraisings (for archive)
+  const { data: insanCompletedFundraisings, isLoading: insanCompletedFundraisingsLoading } = useInsanCompletedFundraisings();
 
   const { data: privateCampaignsData, isLoading: privateCampaignsLoading } = useCampaigns({
     type: 'private',
@@ -275,9 +278,43 @@ export default function CampaignsPage() {
   }, [privateCampaignsData, searchQuery, selectedFilters, quickFilter]);
 
   const completedCampaigns = useMemo(() => {
-    if (!completedCampaignsData?.data) return [];
-    return Array.isArray(completedCampaignsData.data) ? completedCampaignsData.data : completedCampaignsData.data.items || [];
-  }, [completedCampaignsData]);
+    const apiCompleted = completedCampaignsData?.data 
+      ? (Array.isArray(completedCampaignsData.data) ? completedCampaignsData.data : completedCampaignsData.data.items || [])
+      : [];
+    
+    // Convert Insan completed fundraisings to campaign format
+    const insanCompleted = (insanCompletedFundraisings || []).map((fundraising: any) => {
+      return {
+        id: `insan-${fundraising.id}`,
+        title: fundraising.title || 'Без названия',
+        description: fundraising.short || '',
+        fullDescription: fundraising.description || '',
+        image: fundraising.preview || fundraising.og_image || '/placeholder-campaign.jpg',
+        category: fundraising.category_name || 'Фонд Инсан',
+        type: 'fund',
+        status: 'completed',
+        goal: Number(fundraising.end_money) || 0,
+        collected: Number(fundraising.collect_money) || 0,
+        currency: 'RUB',
+        partner: {
+          id: 'insan',
+          name: 'Фонд Инсан',
+          verified: true
+        },
+        url: fundraising.url,
+        insanFundraisingId: fundraising.id,
+        isInsanFundraising: true,
+        participantCount: Number(fundraising.number_of_people_helping) || 0,
+        urgent: false, // Завершенные не могут быть срочными
+        completedAt: fundraising.created || null,
+        city: fundraising.city || '',
+        defaultAmount: Number(fundraising.default_amount) || 100,
+      };
+    });
+    
+    // Combine API completed campaigns and Insan completed fundraisings
+    return [...apiCompleted, ...insanCompleted];
+  }, [completedCampaignsData, insanCompletedFundraisings]);
 
   const toggleQuickFilter = (filter: string) => {
     setQuickFilter(prev => prev === filter ? null : filter);
@@ -1278,7 +1315,7 @@ export default function CampaignsPage() {
         </TabsContent>
 
         <TabsContent value="completed" className="space-y-4 mt-0">
-          {completedCampaignsLoading ? (
+          {(completedCampaignsLoading || insanCompletedFundraisingsLoading) ? (
             <LoadingState text="Загрузка завершенных кампаний..." />
           ) : completedCampaigns.length > 0 ? (
             completedCampaigns.map((campaign: any) => {
